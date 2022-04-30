@@ -33,11 +33,41 @@ class TestCMC(unittest.TestCase):
         filename = CMC.formatURL('hrdps', '20220418', '12', '000', rdps_variables["temperature"][0], 'ps2.5km', 'west')
         self.assertEqual(filename, 'https://dd.weather.gc.ca/model_hrdps/west/grib2/12/000/CMC_hrdps_west_TMP_TGL_2_ps2.5km_2022041812_P000-00.grib2', "Is correct value")
 
-    def test_generateUrlList_geps_1(self):
-        filename = CMC.generateUrlList('geps', '12', 3, geps_variables["temperature"][0], 'latlon0p5x0p5')
+    def test_generateUrlList_geps(self):
+        filename = CMC.generateUrlList('geps', '12', 5, [geps_variables["temperature"][0]], 'latlon0p5x0p5')
         currentDate = arrow.utcnow().to('-04:00').format()
         results = [
-            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/000/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P000_allmbrs.grib2' % (currentDate))
+            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/000/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P000_allmbrs.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/003/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P003_allmbrs.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/006/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P006_allmbrs.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/009/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P009_allmbrs.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/012/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P012_allmbrs.grib2' % (currentDate)),
+        ]
+        self.assertEqual.__self__.maxDiff = None
+        self.assertEqual(filename, results, "Is correct value")
+
+    def test_generateUrlList_rdps(self):
+        filename = CMC.generateUrlList('rdps', '12', 5, [rdps_variables["temperature"][0]], 'ps10km')
+        currentDate = arrow.utcnow().to('-04:00').format()
+        results = [
+            ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/000/CMC_reg_TMP_TGL_2_ps10km_%s12_P000.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/001/CMC_reg_TMP_TGL_2_ps10km_%s12_P001.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/002/CMC_reg_TMP_TGL_2_ps10km_%s12_P002.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/003/CMC_reg_TMP_TGL_2_ps10km_%s12_P003.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/004/CMC_reg_TMP_TGL_2_ps10km_%s12_P004.grib2' % (currentDate))
+        ]
+        self.assertEqual.__self__.maxDiff = None
+        self.assertEqual(filename, results, "Is correct value")
+
+    def test_generateUrlList_hrdps(self):
+        filename = CMC.generateUrlList('hrdps', '12', 5, [rdps_variables["temperature"][0]], 'ps2.5km')
+        currentDate = arrow.utcnow().to('-04:00').format()
+        results = [
+            ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/000/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P000-00.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/001/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P001-00.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/002/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P002-00.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/003/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P003-00.grib2' % (currentDate)),
+            ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/004/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P004-00.grib2' % (currentDate)),
         ]
         self.assertEqual.__self__.maxDiff = None
         self.assertEqual(filename, results, "Is correct value")

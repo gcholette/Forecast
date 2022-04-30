@@ -35,6 +35,9 @@ class CMC:
     @staticmethod
     def getTypedURL(type, startDate,  runHour = '12', forecastHour = '000', variable = 'TMP_TGL_2', resolution='ps2.5km', domain='east'):
       match type:
+        # http://dd.weather.gc.ca/ensemble/geps/grib2/raw/HH/hhh/
+        # HH: model run start, in UTC [00,12]
+        # hhh: forecast hour [000, 003, …, 192, 198, 204, ..., 378, 384] and [000, 003, …, 192, 198, 204, ..., 762, 768] each Thursday at 000UTC
         case 'geps': return ("https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%s/%s/" % (runHour, forecastHour))
         case 'rdps': return ("https://dd.weather.gc.ca/model_gem_regional/%s/grib2/%s/%s/" % ((resolution).replace('ps', ''), runHour, forecastHour))
         case 'hrdps': return ("https://dd.weather.gc.ca/model_hrdps/%s/grib2/%s/%s/" % (domain, runHour, forecastHour))
@@ -61,14 +64,27 @@ class CMC:
                 filename = CMC.formatFilename(type, startDate, runHour, hour, variable, resolution, domain)
                 names.append(filename)
         return names
+
+    @staticmethod
+    def typeMultiplier(type, value):
+      if type == 'geps':
+        return value * 3
+      elif type == 'rdps':
+        return value * 1
+      elif type == 'hrdps':
+        return value * 1
     
     @staticmethod
     def generateUrlList(type, runHour = '12', rangeTop=0, variables=["TMP_TGL_2"], resolution = 'ps2.5km', domain='east'):
+        if (not isinstance(variables, list)):
+          raise RuntimeError("Variables is not an array.")
         names = []
-        urlBase = 'https://dd.weather.gc.ca/model_hrdps/east/grib2/18/'
         startDate = arrow.utcnow().to('-04:00').format()
         for variable in variables:
             for hour in range(0, rangeTop):
-                filename = urlBase + ( '%03d/' % hour ) + CMC.formatFilename(type, startDate, runHour, hour, variable, resolution, domain)
-                names.append(filename)
+                formatedHour = '%03d' % CMC.typeMultiplier(type, hour)
+                urlBase = CMC.getTypedURL(type, startDate, runHour, formatedHour, variable, resolution, domain )
+                filename = CMC.formatFilename(type, startDate, runHour, formatedHour, variable, resolution, domain)
+                fullUrl = urlBase + filename
+                names.append(fullUrl)
         return names
