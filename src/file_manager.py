@@ -1,4 +1,5 @@
 import os
+import arrow
 import shutil
 
 from constants import data_path, hrdps_path
@@ -23,3 +24,12 @@ class FileManager:
         path = data_path + 'cmc/hrdps/'
         with open(path + filename, 'wb') as f:
             f.write(content)
+
+    @staticmethod
+    def getTimestampFromFilename(filename): 
+        a = filename.split('_')
+        date = a[len(a)-2]
+        hour = a[len(a)-1][2:4]
+        run_hour = date[8:10]
+        time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=int(hour)).format()
+        return time

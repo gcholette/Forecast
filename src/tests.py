@@ -35,7 +35,7 @@ class TestCMC(unittest.TestCase):
 
     def test_generateUrlList_geps(self):
         filename = CMC.generateUrlList('geps', '12', 5, [geps_variables["temperature"][0]], 'latlon0p5x0p5')
-        currentDate = arrow.utcnow().to('-04:00').format()
+        currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/000/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P000_allmbrs.grib2' % (currentDate)),
             ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/003/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P003_allmbrs.grib2' % (currentDate)),
@@ -48,7 +48,7 @@ class TestCMC(unittest.TestCase):
 
     def test_generateUrlList_rdps(self):
         filename = CMC.generateUrlList('rdps', '12', 5, [rdps_variables["temperature"][0]], 'ps10km')
-        currentDate = arrow.utcnow().to('-04:00').format()
+        currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/000/CMC_reg_TMP_TGL_2_ps10km_%s12_P000.grib2' % (currentDate)),
             ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/001/CMC_reg_TMP_TGL_2_ps10km_%s12_P001.grib2' % (currentDate)),
@@ -61,7 +61,7 @@ class TestCMC(unittest.TestCase):
 
     def test_generateUrlList_hrdps(self):
         filename = CMC.generateUrlList('hrdps', '12', 5, [rdps_variables["temperature"][0]], 'ps2.5km')
-        currentDate = arrow.utcnow().to('-04:00').format()
+        currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/000/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P000-00.grib2' % (currentDate)),
             ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/001/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P001-00.grib2' % (currentDate)),
