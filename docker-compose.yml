@@ -1,6 +1,13 @@
 version: '3'
 services:
   forecast-service:
-    build: .
+    build:
+      context: .
+      target: prod
     volumes:
       - ./data/:/app/data
+
+  forecast-service-test:
+    build:
+      context: .
+      target: test
