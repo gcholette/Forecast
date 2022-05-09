@@ -62,8 +62,8 @@ def getHRDPS(lat, lon):
 def main():
     cprint(fg.cyan, "Forecast service starting...")
 
-    lat = 45.541092
-    lon = -73.494955
+    lat = 45.532387
+    lon = -73.461701
 
     data = getHRDPS(lat, lon)
 
