@@ -39,7 +39,7 @@ def getHRDPS(lat, lon):
     domain = 'east'
     now = arrow.utcnow().to('-04:00').format('YYYYMMDD')
     run_hour = CMC.calculateRunStart(cmc_type)
-    json_filename = ('hrdps_local_%s_%s' % (now, run_hour))
+    json_filename = ('hrdps_local_%s_%s_%s_%s' % (now, lat,lon, run_hour))
     hrdps_cmc = CMC(cmc_type, domain, resolution, variables, run_hour, hours)
     data = []
 
