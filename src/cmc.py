@@ -1,156 +1,154 @@
+from ast import For
 import arrow
 import requests
 import pygrib
 
+from sty import fg
 from os.path import exists
 from constants import hrdps_path
 from grib import GribAnalyst
 from file_manager import FileManager
+from util import cprint
 
 class CMC:
-    # def loadGribFiles(self):
-    #     print ("Requesting GRIB2 CMC HRDPS files...")
-    #     lst = HRDPSFileListGenerator().generateUrlList(rangeTop=self.rangeTop, variables=self.variables)
-    #     print("Url list:" + str(lst))
-    #     FileManager.deleteAllFiles()
-    #     FileManager.createMissingFiles()
+    def __init__(self, cmc_type, domain='east', resolution='ps2.5km', variables=[], run_hour = '00', range_top = 48):
+        self.type = cmc_type
+        self.domain = domain
+        self.resolution = resolution
+        self.variables = variables
+        self.run_hour = run_hour
+        self.range_top = range_top
 
-    #     for url in lst:
-    #         r = requests.get(url=url)
-    #         status = r.status_code
-    #         if (status == 200): 
-    #           FileManager.addHRDPSFile("CMC_hrdps" + url.split("CMC_hrdps")[1], r.content)
-    #         else:
-    #           print("Recevied status code " + str(status) + " while fetching HRDPS GRIB2 file.")
+    def fetchFiles(self, urls, files):
+        needToFetch = False
+        for file in files:
+          if not FileManager.fileExists(file):
+            needToFetch = True
+        
+        if not needToFetch:
+          cprint (fg.cyan, "No need to re-fetch files")
+          return ''
 
-    #     print ("Done.")
-
-    @staticmethod
-    def fetchFiles(type, filepaths):
-        print ("Requesting GRIB2 CMC HRDPS files...")
-        print("Url list:" + str(filepaths))
+        cprint (fg.cyan, "Requesting %s GRIB2 CMC HRDPS files..." % len(urls))
         FileManager.deleteAllFiles()
         FileManager.createMissingFiles()
 
-        for url in filepaths:
+        for url in urls:
             r = requests.get(url=url)
             status = r.status_code
-            if (status == 200): 
-              match type:
+            if (status == 200):
+              match self.type:
                 case 'hrdps':
                   FileManager.addHRDPSFile("CMC_hrdps" + url.split("CMC_hrdps")[1], r.content)
                 case 'default':
-                  print('Not implemented')
+                  cprint(fg.red, 'Not implemented')
             else:
-              print("Recevied status code " + str(status) + " while fetching HRDPS GRIB2 file.")
+              cprint(fg.red, "Recevied status code " + str(status) + " while fetching HRDPS GRIB2 file.")
+        cprint(fg.green, "Done.")
 
-        print ("Done.")
-
-    @staticmethod
-    def loadGribFromFiles(type, hours = 0, variables = [], filePaths = []):
-      match type:
+    def loadGribFromFiles(self, lat, lon, filePaths = []):
+      match self.type:
         case 'hrdps':
-          print ("Loading grib data...")
-          lat = 45.541092
-          lon = -73.494955
+          cprint(fg.cyan, "Loading grib data...")
 
+          diff = 0.02
           data = []
           for filename in filePaths:
               file_path = hrdps_path + filename
               if (exists(file_path)): 
                   grbs = pygrib.open(hrdps_path + filename)
                   timestamp = FileManager.getTimestampFromFilename(filename)
-                  #attr = '2 metre temperature'
                   gribAnalyst = GribAnalyst(grbs)
                   inv1 = gribAnalyst.getInventory()
-                  print(str(inv1))
                   inv = str(inv1[0])
                   if (len(inv) > 0):
                       attr = inv.split(':')[1]
-                      localData = gribAnalyst.findCentralData(attr, lat-0.02, lat+0.02, lon-0.02, lon+0.02)
+                      localData = gribAnalyst.findCentralData(attr, lat-diff, lat+diff, lon-diff, lon+diff)
                       localData['time'] = timestamp
+                      localData['time'] = arrow.get(localData['time']).to('-04:00').shift(hours=int(self.run_hour)).format()
+                      if (localData['type'] == '2 metre temperature'):
+                        localData['value'] = round(localData['value'] - 273.15, 2)
                       data.append(localData)
               else:
-                print("No file to load.")
+                cprint(fg.red, "No file to load.")
 
-          print ("Done.")
+          cprint(fg.green, "Done.")
           return data
         case 'default':
-          print('Not implemented')
+          cprint(fg.red, 'Not implemented')
           return []
-      print(type)
+      cprint(fg.yellow, self.type)
 
-    #  CMC_hrdps_domain_Variable_LevelType_level_ps2.5km_YYYYMMDDHH_Phhh-mm.grib2
-    #  Variable examples https://weather.gc.ca/grib/HRDPS_HR/HRDPS_nat_ps2p5km_P000_deterministic_e.html
-    @staticmethod
-    def formatFilename(type, startDate, runHour, forecastHour, variable, resolution, domain="east"):
-        formatedHour = '%03d' % CMC.typeMultiplier(type, forecastHour)
-        match type:
+    def formatFilename(self, startDate, forecastHour, variable):
+        formatedHour = '%03d' % self.typeMultiplier(forecastHour)
+        match self.type:
           case 'geps':
-            return "CMC_geps-raw_%s_%s_%s%s_P%s_allmbrs.grib2" % (variable, resolution, startDate, runHour, formatedHour)
+            return "CMC_geps-raw_%s_%s_%s%s_P%s_allmbrs.grib2" % (variable, self.resolution, startDate, self.run_hour, formatedHour)
           case 'rdps':
-            return "CMC_reg_%s_%s_%s%s_P%s.grib2" % (variable, resolution, startDate, runHour, formatedHour)
+            return "CMC_reg_%s_%s_%s%s_P%s.grib2" % (variable, self.resolution, startDate, self.run_hour, formatedHour)
           case 'hrdps':
-            return "CMC_hrdps_%s_%s_%s_%s%s_P%s-00.grib2" % (domain, variable, resolution, startDate, runHour, formatedHour)
+            return "CMC_hrdps_%s_%s_%s_%s%s_P%s-00.grib2" % (self.domain, variable, self.resolution, startDate, self.run_hour, formatedHour)
           case 'default':
             return ''
 
-    @staticmethod
-    def getTypedURL(type, startDate,  runHour = '12', forecastHour = '000', variable = 'TMP_TGL_2', resolution='ps2.5km', domain='east'):
-      formatedHour = '%03d' % CMC.typeMultiplier(type, forecastHour)
-      match type:
-        # http://dd.weather.gc.ca/ensemble/geps/grib2/raw/HH/hhh/
-        # HH: model run start, in UTC [00,12]
-        # hhh: forecast hour [000, 003, …, 192, 198, 204, ..., 378, 384] and [000, 003, …, 192, 198, 204, ..., 762, 768] each Thursday at 000UTC
-        case 'geps': return ("https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%s/%s/" % (runHour, formatedHour))
-        case 'rdps': return ("https://dd.weather.gc.ca/model_gem_regional/%s/grib2/%s/%s/" % ((resolution).replace('ps', ''), runHour, formatedHour))
-        case 'hrdps': return ("https://dd.weather.gc.ca/model_hrdps/%s/grib2/%s/%s/" % (domain, runHour, formatedHour))
+    def getTypedURL(self, forecastHour = '000'):
+      formatedHour = '%03d' % self.typeMultiplier(forecastHour)
+      match self.type:
+        case 'geps': return ("https://dd.weather.gc.ca/ensemble/geps/grib2/raw/%s/%s/" % (self.run_hour, formatedHour))
+        case 'rdps': return ("https://dd.weather.gc.ca/model_gem_regional/%s/grib2/%s/%s/" % ((self.resolution).replace('ps', ''), self.run_hour, formatedHour))
+        case 'hrdps': return ("https://dd.weather.gc.ca/model_hrdps/%s/grib2/%s/%s/" % (self.domain, self.run_hour, formatedHour))
 
-    @staticmethod
-    def formatURL(type, startDate, runHour, forecastHour, variable, resolution, domain='east'):
-        urlBase = CMC.getTypedURL(type, startDate, runHour, forecastHour, variable, resolution, domain)
-        return "%s%s" % (urlBase, CMC.formatFilename(type, startDate, runHour, forecastHour, variable, resolution, domain))
+    def formatURL(self, startDate, forecastHour, variable):
+        urlBase = self.getTypedURL(forecastHour)
+        return "%s%s" % (urlBase, self.formatFilename(startDate, forecastHour, variable))
         
-    @staticmethod
-    def getTimestampFromFilename(filename, runHour = 18): 
+    def getTimestampFromFilename(self, filename): 
         a = filename.split('_')
         date = a[len(a)-2]
         hour = a[len(a)-1][2:4]
-        time = arrow.get(date, ('YYYYMMDD%s' % (runHour))).shift(hours=int(hour)).format()
+        time = arrow.get(date, ('YYYYMMDD%s' % (self.runHour))).shift(hours=int(hour)).format()
         return time
 
-    @staticmethod
-    def generateFilenameList(type, runHour = '12', rangeTop=0, variables=["TMP_TGL_2"], resolution = 'ps2.5km', domain='east'):
-        if (not isinstance(variables, list)):
+    def generateFilenameList(self):
+        if (not isinstance(self.variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
         startDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
-        for variable in variables:
-            for hour in range(0, rangeTop):
-                filename = CMC.formatFilename(type, startDate, runHour, hour, variable, resolution, domain)
+        for variable in self.variables:
+            for hour in range(0, self.range_top):
+                filename = self.formatFilename(startDate, hour, variable)
                 names.append(filename)
         return names
 
-    @staticmethod
-    def typeMultiplier(type, value):
+    def typeMultiplier(self, value):
       casted_value = int(value)
-      if type == 'geps':
+      if self.type == 'geps':
         return casted_value * 3
-      elif type == 'rdps':
+      elif self.type == 'rdps':
         return casted_value * 1
-      elif type == 'hrdps':
+      elif self.type == 'hrdps':
         return casted_value * 1
     
-    @staticmethod
-    def generateUrlList(type, runHour = '12', rangeTop=0, variables=["TMP_TGL_2"], resolution = 'ps2.5km', domain='east'):
+    def generateUrlList(self, variables=["TMP_TGL_2"]):
         if (not isinstance(variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
         startDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         for variable in variables:
-            for hour in range(0, rangeTop):
-                urlBase = CMC.getTypedURL(type, startDate, runHour, hour, variable, resolution, domain )
-                filename = CMC.formatFilename(type, startDate, runHour, hour, variable, resolution, domain)
+            for hour in range(0, self.range_top):
+                urlBase = self.getTypedURL(hour)
+                filename = self.formatFilename(startDate, hour, variable)
                 fullUrl = urlBase + filename
                 names.append(fullUrl)
         return names
+
+    @staticmethod
+    def calculateRunStart(type):
+        startDate = int(arrow.utcnow().format('HH'))
+        if type == 'hrdps': 
+          if startDate >= 0 and startDate < 6: return '18'
+          if startDate >= 6 and startDate < 12: return '00'
+          if startDate >= 12 and startDate < 18: return '06'
+          if startDate >= 18 and startDate <= 24: return '12'
+        
+        return '00'

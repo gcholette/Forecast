@@ -1,13 +1,15 @@
 version: '3'
 services:
-  forecast-service:
+  app:
+    stdin_open: true
+    tty: true
     build:
       context: .
       target: prod
     volumes:
       - ./data/:/app/data
 
-  forecast-service-test:
+  test:
     build:
       context: .
       target: test
