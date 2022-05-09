@@ -2,6 +2,8 @@
 
 Fetch and aggregate data from various meteorological sources to estimate an hourly forecast (Unfinished).
 
+Only tested inside docker because of the hassle of installing pygrib.
+
 Currently working on support for GEPS and RDPS analysis (from [CMC](https://weather.gc.ca/mainmenu/modelling_menu_e.html)).
 
 Working sources: CMC HRDPS
