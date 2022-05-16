@@ -7,6 +7,7 @@ from cmc import CMC
 from constants import *
 from util import cprint
 from uniplot import plot
+from yaspin import yaspin
 
 def extractValue(x):
   return (float(x['value']))
@@ -45,13 +46,17 @@ def getHRDPS(lat, lon):
 
     cprint(fg.cyan, 'Run Hour: ' + run_hour)
     cprint(fg.magenta, arrow.utcnow().to('-04:00').format('MM-DD HH:mm:ss'))
-    cprint(fg.magenta, ('%s %s temperature (%s, %s)') % (cmc_type, domain, str(lat), str(lon))) # cmc_type + '' + domain + ' temperature, (' + str(lat) + ' ' + str(lon) + ') ' + domain)
 
-    if (not FileManager.jsonFileExists(cmc_type, json_filename)):
+    if 1 == 1:#(not FileManager.jsonFileExists(cmc_type, json_filename)):
       filenames = hrdps_cmc.generateFilenameList()
       urls = hrdps_cmc.generateUrlList()
-      hrdps_cmc.fetchFiles(urls, filenames)
-      data = hrdps_cmc.loadGribFromFiles(lat, lon, filenames)
+      with yaspin(text=(fg.cyan + "Fetching HRDPS CMC GRIB2 Files..." + fg.rs), color="magenta") as sp:
+          hrdps_cmc.fetchFiles(urls, filenames)
+          sp.ok("✅")
+
+      with yaspin(text=(fg.cyan + "Loading data from GRIB2 Files..." + fg.rs), color="magenta") as sp:
+          data = hrdps_cmc.loadGribFromFiles(lat, lon, filenames)
+          sp.ok("✅")
       FileManager.saveJson('hrdps', json_filename, data)
     else:
       data = FileManager.openJsonFile(cmc_type, json_filename)

@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
   libgrib-api-dev \
   cython
 
-RUN pip install numpy pyproj arrow requests pygrib sty uniplot
+RUN pip install numpy pyproj arrow requests pygrib sty uniplot yaspin
 
 # RUN git clone https://github.com/jswhit/pygrib.git pygrib && \
 #   cd pygrib && git checkout tags/v2.1.4rel

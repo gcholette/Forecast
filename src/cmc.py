@@ -26,10 +26,8 @@ class CMC:
             needToFetch = True
         
         if not needToFetch:
-          cprint (fg.cyan, "No need to re-fetch files")
           return ''
 
-        cprint (fg.cyan, "Requesting %s GRIB2 CMC HRDPS files..." % len(urls))
         FileManager.deleteAllFiles()
         FileManager.createMissingFiles()
 
@@ -44,13 +42,10 @@ class CMC:
                   cprint(fg.red, 'Not implemented')
             else:
               cprint(fg.red, "Recevied status code " + str(status) + " while fetching HRDPS GRIB2 file.")
-        cprint(fg.green, "Done.")
 
     def loadGribFromFiles(self, lat, lon, filePaths = []):
       match self.type:
         case 'hrdps':
-          cprint(fg.cyan, "Loading grib data...")
-
           diff = 0.02
           data = []
           for filename in filePaths:
@@ -72,7 +67,6 @@ class CMC:
               else:
                 cprint(fg.red, "No file to load.")
 
-          cprint(fg.green, "Done.")
           return data
         case 'default':
           cprint(fg.red, 'Not implemented')
