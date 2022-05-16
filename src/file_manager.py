@@ -3,13 +3,12 @@ import json
 import arrow
 import shutil
 
-from constants import data_path, hrdps_path
+from constants import data_path, hrdps_path, geps_path
 
 class FileManager:
     @staticmethod
-    def fileExists(file):
-      path = data_path + 'cmc/hrdps/'
-      return os.path.exists(path + file)
+    def fileExists(fullpath):
+      return os.path.exists(fullpath)
 
     @staticmethod
     def createMissingFiles():
@@ -19,6 +18,8 @@ class FileManager:
             os.mkdir(data_path + 'cmc/')
         if not os.path.exists(hrdps_path):
             os.mkdir(hrdps_path)
+        if not os.path.exists(geps_path):
+            os.mkdir(geps_path)
 
     @staticmethod
     def deleteAllFiles():
@@ -32,13 +33,28 @@ class FileManager:
             f.write(content)
 
     @staticmethod
-    def getTimestampFromFilename(filename): 
-        a = filename.split('_')
-        date = a[len(a)-2]
-        hour = a[len(a)-1][2:4]
-        run_hour = date[8:10]
-        time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=int(hour)).format()
-        return time
+    def addGEPSFile(filename, content): 
+        path = data_path + 'cmc/geps/'
+        with open(path + filename, 'wb') as f:
+            f.write(content)
+
+    @staticmethod
+    def getTimestampFromFilename(filename, cmc_type): 
+        if cmc_type == 'hrdps':
+          a = filename.split('_')
+          date = a[len(a)-2]
+          hour = a[len(a)-1][2:4]
+          run_hour = date[8:10]
+          time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=int(hour)).format()
+          return time
+        if cmc_type == 'geps':
+          a = filename.split('_')
+          date = a[6]
+          hour = a[len(a)-2][2:4]
+          run_hour = date[8:10]
+          time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=int(hour)).format()
+          return time
+
     
     @staticmethod
     def saveJson(type, filename, content):

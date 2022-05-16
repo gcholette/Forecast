@@ -1,5 +1,6 @@
 data_path = '/app/data/'
 hrdps_path = '/app/data/cmc/hrdps/'
+geps_path = '/app/data/cmc/geps/'
 
 geps_variables = {
   "temperature": ["TMP_TGL_2m"]

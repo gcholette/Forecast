@@ -5,7 +5,7 @@ import pygrib
 
 from sty import fg
 from os.path import exists
-from constants import hrdps_path
+from constants import hrdps_path, geps_path
 from grib import GribAnalyst
 from file_manager import FileManager
 from util import cprint
@@ -21,8 +21,14 @@ class CMC:
 
     def fetchFiles(self, urls, files):
         needToFetch = False
+        basepath = ""
+        if self.type == 'hrdps':
+          basepath = hrdps_path
+        if self.type == 'geps':
+          basepath = geps_path
+
         for file in files:
-          if not FileManager.fileExists(file):
+          if not FileManager.fileExists(basepath + file):
             needToFetch = True
         
         if not needToFetch:
@@ -31,13 +37,18 @@ class CMC:
         FileManager.deleteAllFiles()
         FileManager.createMissingFiles()
 
+        cprint (fg.cyan, "Requesting %s GRIB2 CMC %s files..." % (len(urls), self.type.upper()))
+
         for url in urls:
             r = requests.get(url=url)
             status = r.status_code
             if (status == 200):
               match self.type:
                 case 'hrdps':
+                  print('.', end='')
                   FileManager.addHRDPSFile("CMC_hrdps" + url.split("CMC_hrdps")[1], r.content)
+                case 'geps':
+                  FileManager.addGEPSFile("CMC_geps-raw" + url.split("CMC_geps-raw")[1], r.content)
                 case 'default':
                   cprint(fg.red, 'Not implemented')
             else:
@@ -52,7 +63,7 @@ class CMC:
               file_path = hrdps_path + filename
               if (exists(file_path)): 
                   grbs = pygrib.open(hrdps_path + filename)
-                  timestamp = FileManager.getTimestampFromFilename(filename)
+                  timestamp = FileManager.getTimestampFromFilename(filename, 'hrdps')
                   gribAnalyst = GribAnalyst(grbs)
                   inv1 = gribAnalyst.getInventory()
                   inv = str(inv1[0])
@@ -68,6 +79,36 @@ class CMC:
                 cprint(fg.red, "No file to load.")
 
           return data
+
+        case 'geps':
+          diff = 0.5 
+          data = []
+          for filename in filePaths:
+              file_path = geps_path + filename
+              if (exists(file_path)): 
+                  grbs = pygrib.open(file_path)
+                  timestamp = FileManager.getTimestampFromFilename(filename, 'geps')
+                  gribAnalyst = GribAnalyst(grbs)
+                  inv1 = gribAnalyst.getInventory()
+                  cprint(fg.cyan, "GEPS Inventory: ")
+                  for i in inv1:
+                    cprint(fg.yellow, str(i))
+                  inv = str(inv1[0])
+                  gribAnalyst.getInfo()
+                  if (len(inv) > 0):
+                      attr = inv.split(':')[1]
+                      localData = gribAnalyst.findCentralData(attr, round(lat-diff, 1), round(lat+diff, 1), round(lon-diff+180, 1), round(lon+diff+180,1))
+                      localData['time'] = timestamp
+                      localData['time'] = arrow.get(localData['time']).to('-04:00').shift(hours=int(self.run_hour)).format()
+                      cprint(fg.yellow, str(localData))
+                      #if (localData['type'] == '2 metre temperature'):
+                      #  localData['value'] = round(localData['value'] - 273.15, 2)
+                      data.append(localData)
+              else:
+                cprint(fg.red, "No file to load.")
+
+          cprint(fg.green, "Done.")
+          return []
         case 'default':
           cprint(fg.red, 'Not implemented')
           return []
@@ -124,11 +165,11 @@ class CMC:
         return casted_value * 1
     
     def generateUrlList(self, variables=["TMP_TGL_2"]):
-        if (not isinstance(variables, list)):
+        if (not isinstance(self.variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
         startDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
-        for variable in variables:
+        for variable in self.variables:
             for hour in range(0, self.range_top):
                 urlBase = self.getTypedURL(hour)
                 filename = self.formatFilename(startDate, hour, variable)

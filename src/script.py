@@ -63,18 +63,68 @@ def getHRDPS(lat, lon):
 
     return data
 
+def getGEPS(lat, lon):
+    cmc_type = 'geps'
+    hours = 8
+    variables = geps_variables['temperature']
+    resolution = 'latlon0p5x0p5'
+    domain = 'east'
+    now = arrow.utcnow().to('-04:00').format('YYYYMMDD')
+    run_hour = CMC.calculateRunStart(cmc_type)
+    json_filename = ('geps_local_%s_%s_%s_%s' % (now, lat,lon, run_hour))
+    cmc = CMC(cmc_type, domain, resolution, variables, run_hour, hours)
+    data = []
+
+    cprint(fg.cyan, 'Run Hour: ' + run_hour)
+    cprint(fg.magenta, arrow.utcnow().to('-04:00').format('MM-DD HH:mm:ss'))
+    cprint(fg.magenta, ('%s %s temperature (%s, %s)') % (cmc_type, domain, str(lat), str(lon))) # cmc_type + '' + domain + ' temperature, (' + str(lat) + ' ' + str(lon) + ') ' + domain)
+
+
+    filenames = cmc.generateFilenameList()
+    urls = cmc.generateUrlList()
+    print('URLS: ' + str(urls))
+    print('Filenames: ' + str(filenames))
+    cmc.fetchFiles(urls, filenames)
+    data = cmc.loadGribFromFiles(lat, lon, filenames)
+    FileManager.saveJson('geps', json_filename, data)
+
+    #if (not FileManager.jsonFileExists(cmc_type, json_filename)):
+    #  filenames = cmc.generateFilenameList()
+    #  urls = cmc.generateUrlList()
+    #  print('URLS: ' + str(urls))
+      #cmc.fetchFiles(urls, filenames)
+      #data = cmc.loadGribFromFiles(lat, lon, filenames)
+      #FileManager.saveJson('geps', json_filename, data)
+    #else:
+    #  data = FileManager.openJsonFile(cmc_type, json_filename)
+
+    return data
  
 def main():
     cprint(fg.cyan, "Forecast service starting...")
 
-    lat = 45.532387
-    lon = -73.461701
+    lat = 45.536325
+    lon = -73.491374
 
     data = getHRDPS(lat, lon)
+    #data = getGEPS(lat, lon)
 
     ys = list(map(extractValue, data))
     xs = list(map(extractTimestamp, data))
-    plot(xs=[xs, xs],ys=[ys, ys], color=True, y_gridlines=[-10, -5,0,5,10,15,20,25,30,35], x_gridlines=[arrow.utcnow().to('-04:00').timestamp()], width=84, height=12 )
+    grids_x = [
+      arrow.utcnow().to('-04:00').shift(minutes=-5).timestamp(),
+      arrow.utcnow().to('-04:00').shift(minutes=+5).timestamp(),
+      arrow.utcnow().to('-04:00').replace(hour=6, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').replace(hour=12, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').replace(hour=17, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').replace(hour=23, minute=59).timestamp(),
+      arrow.utcnow().to('-04:00').shift(days=+1).replace(hour=6, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').shift(days=+1).replace(hour=12, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').shift(days=+1).replace(hour=17, minute=0).timestamp(),
+      arrow.utcnow().to('-04:00').shift(days=+1).replace(hour=23, minute=59).timestamp()
+    ]
+
+    plot(xs=[xs, xs],ys=[ys, ys], lines=True, color=True, y_gridlines=[-10, -5,0,5,10,15,20,25,30,35], x_gridlines=grids_x, width=84, height=12 )
 
     for x in data:
      print(fg.yellow + arrow.get(x['time']).format('MM-DD HH') + 'h | ' + fg.cyan + str(x['value']) + ' °C' + fg.rs)
