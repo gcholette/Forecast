@@ -69,13 +69,15 @@ class CMC:
                       attr = inv.split(':')[1]
                       localData = gribAnalyst.findCentralData(attr, lat-diff, lat+diff, lon-diff, lon+diff)
                       localData['time'] = timestamp
-                      localData['time'] = arrow.get(localData['time']).to('-04:00').shift(hours=int(self.run_hour)).format()
+                      localData['time'] = arrow.get(localData['time']).to('America/New_York').shift(hours=int(self.run_hour)).format()
                       if (localData['type'] == '2 metre temperature'):
                         localData['value'] = round(localData['value'] - 273.15, 2)
                       if (localData['type'] == '2 metre specific humidity'):
                         localData['value'] = round(localData['value'] * 10000, 2)
                       if (localData['type'] == 'Cloud water'):
                         localData['value'] = round(localData['value'], 2)
+                      if (localData['type'] == '10 metre wind speed'):
+                        localData['value'] = round(localData['value'] * 3.6, 2)
                       data.append(localData)
               else:
                 cprint(fg.red, "No file to load.")
@@ -101,7 +103,7 @@ class CMC:
                       attr = inv.split(':')[1]
                       localData = gribAnalyst.findCentralData(attr, round(lat-diff, 1), round(lat+diff, 1), round(lon-diff+180, 1), round(lon+diff+180,1))
                       localData['time'] = timestamp
-                      localData['time'] = arrow.get(localData['time']).to('-04:00').shift(hours=int(self.run_hour)).format()
+                      localData['time'] = arrow.get(localData['time']).to('America/New_York').shift(hours=int(self.run_hour)).format()
                       cprint(fg.yellow, str(localData))
                       #if (localData['type'] == '2 metre temperature'):
                       #  localData['value'] = round(localData['value'] - 273.15, 2)
@@ -149,7 +151,7 @@ class CMC:
         if (not isinstance(self.variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
-        startDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
+        startDate = arrow.utcnow().to('America/New_York').format('YYYYMMDD')
         for variable in self.variables:
             for hour in range(0, self.range_top):
                 filename = self.formatFilename(startDate, hour, variable)
@@ -169,7 +171,7 @@ class CMC:
         if (not isinstance(self.variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
-        startDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
+        startDate = arrow.utcnow().to('America/New_York').format('YYYYMMDD')
         for variable in self.variables:
             for hour in range(0, self.range_top):
                 urlBase = self.getTypedURL(hour)
