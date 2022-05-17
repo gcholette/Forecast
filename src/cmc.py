@@ -37,8 +37,6 @@ class CMC:
         FileManager.deleteAllFiles()
         FileManager.createMissingFiles()
 
-        cprint (fg.cyan, "Requesting %s GRIB2 CMC %s files..." % (len(urls), self.type.upper()))
-
         for url in urls:
             r = requests.get(url=url)
             status = r.status_code
@@ -74,6 +72,10 @@ class CMC:
                       localData['time'] = arrow.get(localData['time']).to('-04:00').shift(hours=int(self.run_hour)).format()
                       if (localData['type'] == '2 metre temperature'):
                         localData['value'] = round(localData['value'] - 273.15, 2)
+                      if (localData['type'] == '2 metre specific humidity'):
+                        localData['value'] = round(localData['value'] * 10000, 2)
+                      if (localData['type'] == 'Cloud water'):
+                        localData['value'] = round(localData['value'], 2)
                       data.append(localData)
               else:
                 cprint(fg.red, "No file to load.")
@@ -107,7 +109,6 @@ class CMC:
               else:
                 cprint(fg.red, "No file to load.")
 
-          cprint(fg.green, "Done.")
           return []
         case 'default':
           cprint(fg.red, 'Not implemented')
