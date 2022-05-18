@@ -1,13 +1,19 @@
-data_path = '/app/data/'
-hrdps_path = '/app/data/cmc/hrdps/'
-geps_path = '/app/data/cmc/geps/'
+base_path = 'app'
+data_path = 'data/'
+data_path = f'{base_path}{data_path}'
+hrdps_path = f'{base_path}{data_path}cmc/hrdps/'
+geps_path = f'{base_path}{data_path}cmc/geps/'
 
 geps_variables = {
   "temperature": ["TMP_TGL_2m"]
 }
 
 rdps_variables = {
-  "temperature": ["TMP_TGL_2"]
+  "temperature": ["TMP_TGL_2"],
+  "humidity": ["SPFH_TGL_2"],
+  "precipitation": ["CWAT_EATM_0"],
+  "dew": ["DEPR_TGL_2"],
+  "wind": ["WIND_TGL_10"]
 }
 
 # En Kelvin
