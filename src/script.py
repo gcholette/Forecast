@@ -9,7 +9,7 @@ from util import cprint, reorder_data, str_in_list
 from uniplot import plot
 from yaspin import yaspin
 from curses import wrapper
-from app import App
+from curses_app import CursesApp
 
 timezone = 'America/New_York'
 lat = 45.536325
@@ -228,7 +228,7 @@ def run_prediction():
 
 
 def fullscreen_app():
-  app = App()
+  app = CursesApp()
   wrapper(app.display)
 
 def main():
