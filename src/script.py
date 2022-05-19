@@ -229,7 +229,7 @@ def run_prediction():
 
 def fullscreen_app():
   app = CursesApp()
-  wrapper(app.display)
+  wrapper(app.init)
 
 def main():
   if str_in_list('--fullscreen', sys.argv):

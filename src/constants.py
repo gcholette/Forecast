@@ -1,8 +1,9 @@
-base_path = 'app'
-data_path = 'data/'
-data_path = f'{base_path}{data_path}'
-hrdps_path = f'{base_path}{data_path}cmc/hrdps/'
-geps_path = f'{base_path}{data_path}cmc/geps/'
+version = "0.2.3"
+
+base_path = '/app/'
+data_path = f'{base_path}data/'
+hrdps_path = f'{data_path}cmc/hrdps/'
+geps_path = f'{data_path}cmc/geps/'
 
 geps_variables = {
   "temperature": ["TMP_TGL_2m"]
