@@ -20,8 +20,9 @@ X_LARGE_BOUNDARY_X = 250
 timezone = 'America/New_York'
 lat = 45.536325
 lon = -73.491374
-global_data = []
+hrdps_data_temperature = []
 loading_msg: str = 'Up to date'
+updated_data = False
 
 def extract_value(x):
   return (int(x['value']))
@@ -65,8 +66,10 @@ class CursesApp():
   def __init__(self):
     self.spinner = CursesSpinner(spinner_frames_1)
     self.counter: int = 0
+    self.pre_t_data = []
     self.data_times: list[str] = []
     self.data_values: list[str] = []
+    self.widget_hourly_1_scroll = 0
 
   def refresh_data(self):
     t = Thread(target=self.get_hrdps, args=(lat, lon, rdps_variables["temperature"]))
@@ -85,17 +88,14 @@ class CursesApp():
     self.refresh_data()
     self.footer = curses.newwin(0, init_x, init_y-2, 0)
     self.widget_hourly_1 = curses.newwin(14, init_x, 0, 0)
-    self.widget_hourly_1_pad = curses.newpad(12, 150)
 
-    curses.init_pair(1, curses.COLOR_MAGENTA, curses.COLOR_BLUE)
-    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_CYAN)
     curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
-    curses.init_pair(4, curses.COLOR_BLACK, 160)
-    curses.init_pair(5, curses.COLOR_BLACK, 161)
-    curses.init_pair(6, curses.COLOR_BLACK, 162)
-    curses.init_pair(7, curses.COLOR_BLACK, 163)
-    curses.init_pair(8, curses.COLOR_BLACK, 164)
     curses.init_pair(9, 160, curses.COLOR_BLACK)
+    curses.init_pair(10, 39, curses.COLOR_BLACK)
+    curses.init_pair(11, 166, curses.COLOR_BLACK)
+
+    for i in (list(range(25, 194))):
+      curses.init_pair(i, curses.COLOR_BLACK, i)
 
     self.render_loop()
 
@@ -109,8 +109,9 @@ class CursesApp():
 
       self.setBreakpoints()
 
-      self.data_values = list(map(extract_value,global_data))
-      self.data_times = list(map(extract_timestamp,global_data))
+
+      if (len(self.pre_t_data) == 0 or updated_data):
+        self.scroll_pre_t_data()
 
       if (loading_msg == 'Up to date'):
         self.spinner.set_frames(spinner_frames_2)
@@ -118,7 +119,7 @@ class CursesApp():
       self.spinner.animate()
       self.draw_screen()
       self.counter += 1
-      if (self.counter == 1000):
+      if (self.counter == 50):
         self.refresh_data()
         self.counter = 0
 
@@ -126,10 +127,22 @@ class CursesApp():
         self.draw_footer()
         self.draw_widget_hourly_1()
 
-      self.screen.timeout(100)
+      self.screen.timeout(150)
       self.screen.move(0, 0)
 
       key_or_event = self.screen.getch()
+      if key_or_event == curses.KEY_RIGHT:
+        self.widget_hourly_1_scroll += 1
+        self.scroll_pre_t_data()
+
+        self.widget_hourly_1.clear()
+        self.widget_hourly_1.refresh()
+      if key_or_event == curses.KEY_LEFT and self.widget_hourly_1_scroll > 0:
+        self.widget_hourly_1_scroll -= 1
+        self.scroll_pre_t_data()
+
+        self.widget_hourly_1.clear()
+        self.widget_hourly_1.refresh()
       if key_or_event == curses.KEY_RESIZE:
         self.screen.clear()
         self.screen.refresh()
@@ -139,6 +152,15 @@ class CursesApp():
         exit(0)
       else:
         curses.echo()
+  
+  def scroll_pre_t_data(self):
+    self.pre_t_data = []
+    for d, i in zip(hrdps_data_temperature, list(range(0, len(hrdps_data_temperature)))):
+      if i > self.widget_hourly_1_scroll:
+        self.pre_t_data.append(d)
+
+    self.data_values = list(map(extract_value,self.pre_t_data))
+    self.data_times = list(map(extract_timestamp,self.pre_t_data))
 
   def draw_screen(self):
     if self.is_window_too_small():
@@ -151,14 +173,15 @@ class CursesApp():
     self.widget_hourly_1.border()
     self.widget_hourly_1.attroff(curses.color_pair(3))
 
-    mock_values = ['15', '16', '17', '18','19','20','21','22','23']
-    time_values = ['08', '09', '10', '11','12','13','14','15','16']
+    if (len(hrdps_data_temperature) < 1):
+      return
 
-    self.widget_hourly_1.addstr(3, 2, 'T°C ', curses.color_pair(9))
+    self.widget_hourly_1.addstr(3, 2, 'T°C ', curses.color_pair(11))
+    #self.widget_hourly_1.addstr(2, 8 + 8, '~~', curses.color_pair(10))
 
     for val, time, i in zip(self.data_values, self.data_times, list(range(0, len(self.data_values)))):
       chosen_x = 8 + (i*7)
-      chosen_color = curses.color_pair(5) if int(val) < 17 else ( curses.color_pair(7) if (int(val) < 20) else curses.color_pair(8))
+      chosen_color = curses.color_pair(temperature_color_code(float(val)))
       if (chosen_x + 4 < self.max_x):
         self.widget_hourly_1.addstr(3, 8 + (i*7), f'{str(val).rjust(2,"0").center(4, " ")}', chosen_color)
         self.widget_hourly_1.addstr(1, 8 + (i*7), f' {str(time)} ')
@@ -211,7 +234,8 @@ class CursesApp():
 
   def get_hrdps(self, lat, lon, variables):
     global loading_msg
-    global global_data
+    global hrdps_data_temperature
+    global updated_data
     loading_msg = 'Initiating HRDPS analysis'
 
     cmc_type = 'hrdps'
@@ -235,13 +259,36 @@ class CursesApp():
     else:
       data = FileManager.open_json_file(cmc_type, json_filename)
     
-
     loading_msg = 'Up to date'
-    global_data = list(filter(post_filtering, data))
+    hrdps_data_temperature = list(filter(post_filtering, data))
+    updated_data = True
 
 
 def post_filtering(entry):
-  time = arrow.utcnow().to('America/New_York')
+  time = arrow.utcnow().to('America/New_York').shift(hours=-2)
   time2 = arrow.get(entry['time']).to('America/New_York')
   diff = time < time2
   return diff
+
+def temperature_color_code(temperature: float) -> int:
+  if temperature <= 15:
+    return 51
+  if temperature <= 18:
+    return 49
+  if temperature <= 20:
+    return 46
+  if temperature <= 22:
+    return 82
+  if temperature <= 24:
+    return 118
+  if temperature <= 26:
+    return 154
+  if temperature <= 28:
+    return 190
+  if temperature <= 30:
+    return 178
+  if temperature <= 32:
+    return 166
+  else:
+    return 167
+
