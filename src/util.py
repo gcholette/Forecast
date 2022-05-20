@@ -20,3 +20,6 @@ def str_in_list(x: str, xs: list[str]) -> bool:
     if x == i:
       return True
   return False
+
+def int_half(x):
+  return int((x / 2) - 1)

@@ -93,8 +93,7 @@ def get_geps(lat, lon):
 
     return data
  
-
-def run_prediction():
+def splash():
     print('')
     yellow('      :::::::::: ::::::::  :::::::::  :::::::::: ::::::::      :::      :::::::: ::::::::::: ')
     yellow('     :+:       :+:    :+: :+:    :+: :+:       :+:    :+:   :+: :+:   :+:    :+:    :+:      ')
@@ -105,6 +104,10 @@ def run_prediction():
     yellow('###        ########  ###    ### ########## ########  ###     ###  ########     ###         ') 
     yellow('')
 
+
+def run_prediction():
+    splash()
+    
     data1 = get_hrdps(lat, lon, rdps_variables['temperature'])
     data2 = get_hrdps(lat, lon, rdps_variables['humidity'])
     data3 = get_hrdps(lat, lon, rdps_variables['precipitation'])
