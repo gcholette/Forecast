@@ -1,5 +1,4 @@
-from email import contentmanager
-from signal import signal, SIGWINCH
+import copy
 import curses
 from curses.textpad import rectangle
 import time
@@ -19,15 +18,17 @@ MEDIUM_BOUNDARY_X = 100
 LARGE_BOUNDARY_X = 150 
 X_LARGE_BOUNDARY_X = 250 
 
-timezone = 'America/New_York'
-lat = 45.536325
-lon = -73.491374
-hrdps_data = {
+empty_hrdps_data = {
   'temperature': [],
   'humidity': [],
   'wind': [],
-  'precipitation': [],
+  'precipitation': []
 }
+
+timezone = 'America/New_York'
+lat = 45.536325
+lon = -73.491374
+hrdps_data = copy.deepcopy(empty_hrdps_data)
 loading_msg: str = 'Up to date'
 updated_data = False
 
@@ -74,9 +75,9 @@ class CursesApp():
     self.spinner = CursesSpinner(spinner_frames_1)
     self.counter: int = 0
     self.content_manager = ContentManager()
-    self.pre_t_data = []
-    self.data_times: list[str] = []
-    self.data_values: list[str] = []
+    self.pre_t_data = copy.deepcopy(empty_hrdps_data)
+    self.data_times = copy.deepcopy(empty_hrdps_data)
+    self.data_values = copy.deepcopy(empty_hrdps_data)
     self.widget_hourly_1_scroll = 0
 
   def init(self, stdscr):
@@ -139,7 +140,7 @@ class CursesApp():
 
       self.setBreakpoints()
 
-      if (len(self.pre_t_data) == 0 or updated_data):
+      if (len(self.pre_t_data['temperature']) == 0 or updated_data):
         self.scroll_pre_t_data()
 
       if (loading_msg == 'Up to date'):
@@ -184,13 +185,13 @@ class CursesApp():
   
   def scroll_pre_t_data(self):
     global updated_data
-    self.pre_t_data = []
+    self.pre_t_data['temperature'] = []
     for d, i in zip(hrdps_data['temperature'], list(range(0, len(hrdps_data['temperature'])))):
       if i > self.widget_hourly_1_scroll:
-        self.pre_t_data.append(d)
+        self.pre_t_data['temperature'].append(d)
 
-    self.data_values = list(map(extract_value,self.pre_t_data))
-    self.data_times = list(map(extract_timestamp,self.pre_t_data))
+    self.data_values['temperature'] = list(map(extract_value,self.pre_t_data['temperature']))
+    self.data_times['temperature'] = list(map(extract_timestamp,self.pre_t_data['temperature']))
     updated_data = False
 
   def draw_screen(self):
@@ -210,7 +211,7 @@ class CursesApp():
     self.widget_hourly_1.addstr(3, 2, 'T°C ', curses.color_pair(11))
     #self.widget_hourly_1.addstr(2, 8 + 8, '~~', curses.color_pair(10))
 
-    for val, time, i in zip(self.data_values, self.data_times, list(range(0, len(self.data_values)))):
+    for val, time, i in zip(self.data_values['temperature'], self.data_times['temperature'], list(range(0, len(self.data_values['temperature'])))):
       chosen_x = 8 + (i*7)
       chosen_color = curses.color_pair(temperature_color_code(float(val)))
       if (chosen_x + 4 < self.max_x):
