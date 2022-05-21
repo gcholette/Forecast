@@ -1,3 +1,4 @@
+import arrow
 from sty import fg, bg
 
 def cprint(col, txt, end = ''):
@@ -23,3 +24,32 @@ def str_in_list(x: str, xs: list[str]) -> bool:
 
 def int_half(x):
   return int((x / 2) - 1)
+
+def filter_future_only(entry):
+  time = arrow.utcnow().to('America/New_York').shift(hours=-2)
+  time2 = arrow.get(entry['time']).to('America/New_York')
+  diff = time < time2
+  return diff
+
+def temperature_color_code(temperature: float) -> int:
+  if temperature <= 15:
+    return 51
+  if temperature <= 18:
+    return 49
+  if temperature <= 20:
+    return 46
+  if temperature <= 22:
+    return 82
+  if temperature <= 24:
+    return 118
+  if temperature <= 26:
+    return 154
+  if temperature <= 28:
+    return 190
+  if temperature <= 30:
+    return 178
+  if temperature <= 32:
+    return 166
+  else:
+    return 167
+

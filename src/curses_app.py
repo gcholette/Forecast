@@ -1,10 +1,12 @@
+from email import contentmanager
 from signal import signal, SIGWINCH
 import curses
 from curses.textpad import rectangle
 import time
 from constants import version
 from enum import Enum
-from util import int_half
+from content_manager import ContentManager
+from util import int_half, filter_future_only, temperature_color_code
 from file_manager import FileManager
 import arrow
 from cmc import CMC
@@ -20,7 +22,12 @@ X_LARGE_BOUNDARY_X = 250
 timezone = 'America/New_York'
 lat = 45.536325
 lon = -73.491374
-hrdps_data_temperature = []
+hrdps_data = {
+  'temperature': [],
+  'humidity': [],
+  'wind': [],
+  'precipitation': [],
+}
 loading_msg: str = 'Up to date'
 updated_data = False
 
@@ -66,14 +73,11 @@ class CursesApp():
   def __init__(self):
     self.spinner = CursesSpinner(spinner_frames_1)
     self.counter: int = 0
+    self.content_manager = ContentManager()
     self.pre_t_data = []
     self.data_times: list[str] = []
     self.data_values: list[str] = []
     self.widget_hourly_1_scroll = 0
-
-  def refresh_data(self):
-    t = Thread(target=self.get_hrdps, args=(lat, lon, rdps_variables["temperature"]))
-    t.start()
 
   def init(self, stdscr):
     self.screen = stdscr
@@ -87,9 +91,10 @@ class CursesApp():
 
     self.refresh_data()
     self.footer = curses.newwin(0, init_x, init_y-2, 0)
-    self.widget_hourly_1 = curses.newwin(14, init_x, 0, 0)
+    self.widget_hourly_1 = curses.newwin(7, init_x, 0, 0)
 
     curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_CYAN)
     curses.init_pair(9, 160, curses.COLOR_BLACK)
     curses.init_pair(10, 39, curses.COLOR_BLACK)
     curses.init_pair(11, 166, curses.COLOR_BLACK)
@@ -98,6 +103,31 @@ class CursesApp():
       curses.init_pair(i, curses.COLOR_BLACK, i)
 
     self.render_loop()
+
+  # Threaded fn
+  def use_content_manager(self):
+    global hrdps_data
+    global loading_msg
+    global updated_data 
+    loading_msg = 'Loading HRDPS data'
+
+    data = {}
+    for (d, lm) in self.content_manager.cmc_hrdps_multi_load():
+      loading_msg = lm
+      data = d
+
+    hrdps_data['temperature'] = list(filter(filter_future_only, data['temperature']))
+    hrdps_data['humidity'] = list(filter(filter_future_only, data['humidity']))
+    hrdps_data['wind'] = list(filter(filter_future_only, data['wind']))
+    hrdps_data['precipitation'] = list(filter(filter_future_only, data['precipitation']))
+
+    loading_msg = 'Up to date'
+    updated_data = True
+
+
+  def refresh_data(self):
+    t = Thread(target=self.use_content_manager)
+    t.start()
 
   def render_loop(self):
     while 1:
@@ -109,7 +139,6 @@ class CursesApp():
 
       self.setBreakpoints()
 
-
       if (len(self.pre_t_data) == 0 or updated_data):
         self.scroll_pre_t_data()
 
@@ -119,7 +148,7 @@ class CursesApp():
       self.spinner.animate()
       self.draw_screen()
       self.counter += 1
-      if (self.counter == 50):
+      if (self.counter == 800):
         self.refresh_data()
         self.counter = 0
 
@@ -127,7 +156,7 @@ class CursesApp():
         self.draw_footer()
         self.draw_widget_hourly_1()
 
-      self.screen.timeout(150)
+      self.screen.timeout(100)
       self.screen.move(0, 0)
 
       key_or_event = self.screen.getch()
@@ -154,13 +183,15 @@ class CursesApp():
         curses.echo()
   
   def scroll_pre_t_data(self):
+    global updated_data
     self.pre_t_data = []
-    for d, i in zip(hrdps_data_temperature, list(range(0, len(hrdps_data_temperature)))):
+    for d, i in zip(hrdps_data['temperature'], list(range(0, len(hrdps_data['temperature'])))):
       if i > self.widget_hourly_1_scroll:
         self.pre_t_data.append(d)
 
     self.data_values = list(map(extract_value,self.pre_t_data))
     self.data_times = list(map(extract_timestamp,self.pre_t_data))
+    updated_data = False
 
   def draw_screen(self):
     if self.is_window_too_small():
@@ -173,7 +204,7 @@ class CursesApp():
     self.widget_hourly_1.border()
     self.widget_hourly_1.attroff(curses.color_pair(3))
 
-    if (len(hrdps_data_temperature) < 1):
+    if (len(hrdps_data['temperature']) < 1):
       return
 
     self.widget_hourly_1.addstr(3, 2, 'T°C ', curses.color_pair(11))
@@ -230,65 +261,4 @@ class CursesApp():
   def is_window_too_small(self):
     (bk_y, bk_x) = self.active_breakpoints
     return bk_x == Breakpoints.TOO_SMALL or bk_y == Breakpoints.TOO_SMALL
-
-
-  def get_hrdps(self, lat, lon, variables):
-    global loading_msg
-    global hrdps_data_temperature
-    global updated_data
-    loading_msg = 'Initiating HRDPS analysis'
-
-    cmc_type = 'hrdps'
-    hours = 48
-    resolution = 'ps2.5km'
-    domain = 'east'
-    now = arrow.utcnow().to('-04:00').format('YYYYMMDD')
-    run_hour = CMC.calculate_run_start(cmc_type)
-    json_filename = ('hrdps_local_%s_%s_%s_%s_%s' % (now, variables[0],lat,lon, run_hour))
-    hrdps_cmc = CMC(cmc_type, domain, resolution, variables, run_hour, hours)
-    data = []
-
-    if (not FileManager.json_file_exists(cmc_type, json_filename)):
-      filenames = hrdps_cmc.generate_filename_list()
-      loading_msg = "Fetching HRDPS files"
-      urls = hrdps_cmc.generate_url_list()
-      loading_msg = "Loading HRDPS data"
-      hrdps_cmc.fetch_files(urls, filenames)
-      data = hrdps_cmc.load_grib_from_files(lat, lon, filenames)
-      FileManager.save_json('hrdps', json_filename, data)
-    else:
-      data = FileManager.open_json_file(cmc_type, json_filename)
-    
-    loading_msg = 'Up to date'
-    hrdps_data_temperature = list(filter(post_filtering, data))
-    updated_data = True
-
-
-def post_filtering(entry):
-  time = arrow.utcnow().to('America/New_York').shift(hours=-2)
-  time2 = arrow.get(entry['time']).to('America/New_York')
-  diff = time < time2
-  return diff
-
-def temperature_color_code(temperature: float) -> int:
-  if temperature <= 15:
-    return 51
-  if temperature <= 18:
-    return 49
-  if temperature <= 20:
-    return 46
-  if temperature <= 22:
-    return 82
-  if temperature <= 24:
-    return 118
-  if temperature <= 26:
-    return 154
-  if temperature <= 28:
-    return 190
-  if temperature <= 30:
-    return 178
-  if temperature <= 32:
-    return 166
-  else:
-    return 167
 

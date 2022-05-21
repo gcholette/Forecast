@@ -43,7 +43,6 @@ class CMC:
             if (status == 200):
               match self.type:
                 case 'hrdps':
-                  print('.', end='')
                   FileManager.add_hrdps_file("CMC_hrdps" + url.split("CMC_hrdps")[1], r.content)
                 case 'geps':
                   FileManager.add_geps_file("CMC_geps-raw" + url.split("CMC_geps-raw")[1], r.content)
