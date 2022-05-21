@@ -5,6 +5,8 @@ data_path = f'{base_path}data/'
 hrdps_path = f'{data_path}cmc/hrdps/'
 geps_path = f'{data_path}cmc/geps/'
 
+active_variable_names = ['temperature', 'humidity', 'wind', 'precipitation']
+
 geps_variables = {
   "temperature": ["TMP_TGL_2m"]
 }
@@ -28,7 +30,6 @@ precipitation_variables = ["PWAT_EATM_0", "CWAT_EATM_0"]
 
 # wind speed in m/sec
 wind_variables = ["WDIR_TGL_10", "WIND_TGL_10"]
-
 
 ## links
 # https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/000/CMC_reg_TMP_TGL_2_ps10km_2022041712_P000.grib2

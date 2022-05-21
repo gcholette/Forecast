@@ -113,7 +113,7 @@ class CursesApp():
     loading_msg = 'Loading HRDPS data'
 
     data = {}
-    for (d, lm) in self.content_manager.cmc_hrdps_multi_load():
+    for (d, lm) in self.content_manager.cmc_hrdps_hourly_load():
       loading_msg = lm
       data = d
 

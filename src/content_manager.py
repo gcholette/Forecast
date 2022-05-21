@@ -1,15 +1,29 @@
 
+from numpy import sign, var
 from cmc import CMC
 import arrow
 from file_manager import FileManager
-from constants import rdps_variables
+from constants import rdps_variables, active_variable_names
+from models.current_forecast import CurrentForecast
+from util import minute_diff_percent
 
 timezone = 'America/New_York'
 lat = 45.536325
 lon = -73.491374
 
 class ContentManager:
-  def cmc_hrdps_multi_load(self):
+
+  def current(self):
+    data = {}
+    for (i, _) in self.cmc_hrdps_hourly_load():
+      data = i
+
+    curr_forecast = CurrentForecast(data)
+    
+    return curr_forecast.get()
+    
+
+  def cmc_hrdps_hourly_load(self):
     cmc_type = 'hrdps'
     now = arrow.utcnow().to('-04:00').format('YYYYMMDD')
     hours = 48
@@ -18,12 +32,9 @@ class ContentManager:
     run_hour = CMC.calculate_run_start(cmc_type)
     out_data = {}
 
-    chosen_vars = [
-      (rdps_variables["temperature"][0], "temperature"),
-      (rdps_variables["humidity"][0], "humidity"),
-      (rdps_variables["wind"][0], "wind"),
-      (rdps_variables["precipitation"][0], "precipitation")
-    ]
+    chosen_vars = []
+    for var_name in active_variable_names:
+      chosen_vars.append((rdps_variables[var_name][0], var_name))
 
     for v, name in chosen_vars:
       local_cmc = CMC(cmc_type, domain, resolution, [v], run_hour, hours)

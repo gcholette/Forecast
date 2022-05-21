@@ -1,6 +1,7 @@
 from curses.textpad import rectangle
 import arrow
 import sys
+from content_manager import ContentManager
 from file_manager import FileManager
 from sty import fg
 from cmc import CMC
@@ -237,6 +238,8 @@ def fullscreen_app():
 def main():
   if str_in_list('--fullscreen', sys.argv):
     fullscreen_app()
+  if str_in_list('--test-stuff', sys.argv):
+    print(ContentManager().current())
   else:
     run_prediction()
 

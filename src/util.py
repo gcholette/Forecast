@@ -25,6 +25,15 @@ def str_in_list(x: str, xs: list[str]) -> bool:
 def int_half(x):
   return int((x / 2) - 1)
 
+def in_between_data(x, y, percent):
+  return x + ((y - x) * percent)
+
+def minute_diff_percent(x, y):
+    diff = y - x
+    _,remainder = divmod(diff.seconds, 3600)
+    minutes,_ = divmod(remainder, 60)
+    return minutes / 60
+
 def filter_future_only(entry):
   time = arrow.utcnow().to('America/New_York').shift(hours=-2)
   time2 = arrow.get(entry['time']).to('America/New_York')
