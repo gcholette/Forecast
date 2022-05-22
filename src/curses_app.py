@@ -1,16 +1,16 @@
 import copy
 import curses
 import time
-from constants import timezone, TOO_SMALL_BOUNDARY_X, SMALL_BOUNDARY_X
+from constants import TOO_SMALL_BOUNDARY_X
 from enum import Enum
 from content_manager import ContentManager
-from util import int_half, filter_future_only, temperature_color_code
-import arrow
+from util import int_half, filter_future_only
 from threading import Thread
 from models.current_forecast import CurrentForecast
 from curses_ui.hourly_widget import HourlyWidget
 from curses_ui.footer_widget import FooterWidget
 from curses_ui.current_widget import CurrentWidget
+from curses_ui.splash_widget import SplashWidget
 
 empty_hrdps_data = {
   'temperature': [],
@@ -55,58 +55,13 @@ class CursesApp():
     self.footer = FooterWidget(self.screen, init_y-2, 0, 0, init_x)
     self.hourly_widget = HourlyWidget(self.screen, 13, 0, 4, init_x)
     self.current_widget = CurrentWidget(self.screen, 0, 0, 7, int_half(init_x))
+    self.splash = SplashWidget(self.screen, 0, 0, init_y-4, init_x)
 
-    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-    curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
-    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_CYAN)
-    curses.init_pair(9, 160, curses.COLOR_BLACK)
-    curses.init_pair(10, 39, curses.COLOR_BLACK)
-    curses.init_pair(11, 166, curses.COLOR_BLACK)
+    self.init_colors()
 
-    for i in (list(range(25, 194))):
-      curses.init_pair(i, curses.COLOR_BLACK, i)
+    self.boot_sequence()
 
     self.render_loop()
-
-  # Threaded fn
-  def use_content_manager(self):
-    global hrdps_data
-    global loading_msg
-    global updated_data 
-    global current_data 
-    loading_msg = 'Loading HRDPS data'
-
-    data = {}
-    for (d, lm) in self.content_manager.cmc_hrdps_hourly_load():
-      loading_msg = lm
-      data = d
-
-    hrdps_data['temperature'] = list(filter(filter_future_only, data['temperature']))
-    hrdps_data['humidity'] = list(filter(filter_future_only, data['humidity']))
-    hrdps_data['wind'] = list(filter(filter_future_only, data['wind']))
-    hrdps_data['precipitation'] = list(filter(filter_future_only, data['precipitation']))
-
-    for (d, lm) in self.content_manager.current():
-      loading_msg = lm
-      current_data = d
-
-    loading_msg = 'Up to date'
-    updated_data = True
-
-
-  def refresh_data(self):
-    t = Thread(target=self.use_content_manager)
-    t.start()
-
-  def refresh_all_windows(self):
-    self.screen.clear()
-    self.footer.clear()
-    self.hourly_widget.clear()
-    self.current_widget.clear()
-    self.screen.refresh()
-    self.footer.refresh()
-    self.hourly_widget.refresh()
-    self.current_widget.refresh()
 
   def render_loop(self):
     while 1:
@@ -114,7 +69,7 @@ class CursesApp():
       self.max_y = max_y
       self.max_x = max_x
 
-      self.setBreakpoints()
+      self.setBreakpoints(max_y, max_x)
 
       if (len(self.hourly_data_scrolled['temperature']) == 0 or updated_data):
         self.scroll_hourly_data()
@@ -169,18 +124,79 @@ class CursesApp():
       self.screen.addstr(0, 0, f'Terminal is too small.')
       self.screen.addstr(1, 0, f'Please use a wider interface.')
 
-  def setBreakpoints(self):
-    if (self.max_x <= TOO_SMALL_BOUNDARY_X):
-      self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.TOO_SMALL)
-    if (self.max_x > TOO_SMALL_BOUNDARY_X):
-      self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.SMALL)
+  def boot_sequence(self):
+    self.splash.draw()
+    self.footer.set_message('Starting up')
+    self.footer.draw()
+    for i in range(0, 20):
+      time.sleep(0.1)
+      self.footer.draw()
+    self.splash.clear()
+    self.splash.refresh()
+    self.screen.clear()
+    self.screen.refresh()
 
-    if (self.max_y <= 8):
+  def setBreakpoints(self, max_y, max_x):
+    if (max_x <= TOO_SMALL_BOUNDARY_X):
+      self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.TOO_SMALL)
+    if (max_x > TOO_SMALL_BOUNDARY_X):
+      self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.SMALL)
+    if (max_y <= 8):
       self.active_breakpoints = (Breakpoints.TOO_SMALL, self.active_breakpoints[1])
-    if (self.max_y > 8):
+    if (max_y > 8):
       self.active_breakpoints = (Breakpoints.SMALL, self.active_breakpoints[1])
 
   def is_window_too_small(self):
     (bk_y, bk_x) = self.active_breakpoints
     return bk_x == Breakpoints.TOO_SMALL or bk_y == Breakpoints.TOO_SMALL
 
+  def init_colors(self):
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+    curses.init_pair(3, curses.COLOR_BLUE, curses.COLOR_BLACK)
+    curses.init_pair(2, curses.COLOR_BLUE, curses.COLOR_CYAN)
+    curses.init_pair(4, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+    curses.init_pair(9, 160, curses.COLOR_BLACK)
+    curses.init_pair(10, 39, curses.COLOR_BLACK)
+    curses.init_pair(11, 166, curses.COLOR_BLACK)
+    for i in (list(range(25, 194))):
+      curses.init_pair(i, curses.COLOR_BLACK, i)
+
+
+  def refresh_all_windows(self):
+    self.screen.clear()
+    self.footer.clear()
+    self.hourly_widget.clear()
+    self.current_widget.clear()
+    self.screen.refresh()
+    self.footer.refresh()
+    self.hourly_widget.refresh()
+    self.current_widget.refresh()
+
+  def refresh_data(self):
+    t = Thread(target=self.use_content_manager)
+    t.start()
+
+  # Threaded fn
+  def use_content_manager(self):
+    global hrdps_data
+    global loading_msg
+    global updated_data 
+    global current_data 
+    loading_msg = 'Loading HRDPS data'
+
+    data = {}
+    for (d, lm) in self.content_manager.cmc_hrdps_hourly_load():
+      loading_msg = lm
+      data = d
+
+    hrdps_data['temperature'] = list(filter(filter_future_only, data['temperature']))
+    hrdps_data['humidity'] = list(filter(filter_future_only, data['humidity']))
+    hrdps_data['wind'] = list(filter(filter_future_only, data['wind']))
+    hrdps_data['precipitation'] = list(filter(filter_future_only, data['precipitation']))
+
+    for (d, lm) in self.content_manager.current():
+      loading_msg = lm
+      current_data = d
+
+    loading_msg = 'Up to date'
+    updated_data = True

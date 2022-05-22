@@ -1,4 +1,5 @@
 from curses.textpad import rectangle
+import time
 import arrow
 import sys
 from content_manager import ContentManager

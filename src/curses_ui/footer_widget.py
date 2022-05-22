@@ -25,7 +25,7 @@ class FooterWidget(Widget):
 
     half_loading_msg_length = int(len(self.message) / 2)
     half_footer_width = int(max_x / 2)
-    self.instance.addstr(1, half_footer_width - half_loading_msg_length - 5, f'        {self.message}         ')
+    self.instance.addstr(1, half_footer_width - half_loading_msg_length - 9, f'          {self.message}          ')
     self.spinner.animate()
     self.instance.refresh()
   
