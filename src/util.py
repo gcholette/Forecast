@@ -62,3 +62,8 @@ def temperature_color_code(temperature: float) -> int:
   else:
     return 167
 
+def extract_value(x):
+  return (int(x['value']))
+
+def extract_timestamp(x):
+  return (arrow.get(x['time']).format('HH'))

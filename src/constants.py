@@ -1,4 +1,7 @@
 version = "0.2.3"
+timezone = 'America/New_York'
+lat = 45.536325
+lon = -73.491374
 
 base_path = '/app/'
 data_path = f'{base_path}data/'
@@ -6,6 +9,14 @@ hrdps_path = f'{data_path}cmc/hrdps/'
 geps_path = f'{data_path}cmc/geps/'
 
 active_variable_names = ['temperature', 'humidity', 'wind', 'precipitation']
+spinner_frames_1 = ['_', '/','|', '\\']
+spinner_frames_2 = ['_', '_','_', '_', '-','-','-','-']
+
+TOO_SMALL_BOUNDARY_X = 57
+SMALL_BOUNDARY_X = 75 
+MEDIUM_BOUNDARY_X = 100 
+LARGE_BOUNDARY_X = 150 
+X_LARGE_BOUNDARY_X = 250 
 
 geps_variables = {
   "temperature": ["TMP_TGL_2m"]

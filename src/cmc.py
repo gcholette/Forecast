@@ -69,7 +69,7 @@ class CMC:
                       local_data = grib_analyst.find_central_data(attr, lat-diff, lat+diff, lon-diff, lon+diff)
                       local_data['time'] = timestamp
                       local_data['time'] = arrow.get(local_data['time']).to('America/New_York').shift(hours=int(self.run_hour)).format()
-                      if (local_data['type'] == '2 metre temperature'):
+                      if ('temperature' in local_data['type']):
                         local_data['value'] = round(local_data['value'] - 273.15, 2)
                       if (local_data['type'] == '2 metre specific humidity'):
                         local_data['value'] = round(local_data['value'] * 10000, 2)
