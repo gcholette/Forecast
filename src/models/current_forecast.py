@@ -38,7 +38,7 @@ class CurrentForecast:
       current_data[var_name] = round(x, 2)
       current_data[f'{var_name}_variation'] = round(diff, 2)
 
-    yield (current_data, 'Up to date')
+    return (current_data, 'Up to date')
 
   def join_now_next_hour_raw(self):
     data = self.hourly_data

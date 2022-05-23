@@ -194,9 +194,9 @@ class CursesApp():
     hrdps_data['wind'] = list(filter(filter_future_only, data['wind']))
     hrdps_data['precipitation'] = list(filter(filter_future_only, data['precipitation']))
 
-    for (d, lm) in self.content_manager.current():
-      loading_msg = lm
-      current_data = d
+    (d, lm) = self.content_manager.current()
+    loading_msg = lm
+    current_data = d
 
     loading_msg = 'Up to date'
     updated_data = True
