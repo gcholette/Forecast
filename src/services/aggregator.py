@@ -1,6 +1,6 @@
 from msilib.schema import File
 import arrow
-from file_manager import FileManager
+from services.file_manager import FileManager
 
 ## store dates as utc
 ## don't keep history

@@ -3,10 +3,10 @@ from curses.textpad import rectangle
 import time
 import arrow
 import sys
-from content_manager import ContentManager
-from file_manager import FileManager
+from services.content_manager import ContentManager
+from services.file_manager import FileManager
 from sty import fg
-from cmc import CMC
+from services.cmc import CMC
 from constants import *
 from util import cprint, reorder_data, str_in_list
 from uniplot import plot

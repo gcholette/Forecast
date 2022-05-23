@@ -1,6 +1,5 @@
 import sys
 import old_script
-from content_manager import ContentManager
 from util import  str_in_list
 from curses import wrapper
 from curses_ui.curses_app import CursesApp
@@ -14,7 +13,7 @@ def main():
     # keeping this for reference
     old_script.run_prediction()
   elif str_in_list('--test-stuff', sys.argv):
-    print(ContentManager().current())
+    pass
   else:
     fullscreen_app()
 

@@ -1,7 +1,7 @@
 import unittest
 import arrow
 
-from cmc import CMC
+from services.cmc import CMC
 from constants import geps_variables, rdps_variables
 
 class TestCMC(unittest.TestCase):

@@ -6,8 +6,8 @@ import pygrib
 from sty import fg
 from os.path import exists
 from constants import hrdps_path, geps_path
-from grib import GribAnalyst
-from file_manager import FileManager
+from services.grib_analyst import GribAnalyst
+from services.file_manager import FileManager
 from util import cprint
 
 class CMC:

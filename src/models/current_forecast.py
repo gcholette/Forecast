@@ -16,7 +16,7 @@ class CurrentForecast:
   @staticmethod
   def get_empty():
     current_data = {
-      'time': '',
+      'time': ''
     }
     for var_name in active_variable_names:
       current_data[var_name] = ''

@@ -1,18 +1,15 @@
 
-from numpy import sign, var
-from cmc import CMC
 import arrow
-from file_manager import FileManager
-from constants import rdps_variables, active_variable_names
 from models.current_forecast import CurrentForecast
-from util import minute_diff_percent
+from services.file_manager import FileManager
+from services.cmc import CMC
+from constants import rdps_variables, active_variable_names
 
 timezone = 'America/New_York'
 lat = 45.536325
 lon = -73.491374
 
 class ContentManager:
-
   def current(self):
     data = {}
     for (i, _) in self.cmc_hrdps_hourly_load():

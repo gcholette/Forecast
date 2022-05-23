@@ -1,16 +1,17 @@
 import copy
 import curses
 import time
-from constants import TOO_SMALL_BOUNDARY_X,active_variable_names
 from enum import Enum
-from content_manager import ContentManager
-from util import int_half, filter_future_only
 from threading import Thread
+
 from models.current_forecast import CurrentForecast
+from services.content_manager import ContentManager
 from curses_ui.hourly_widget import HourlyWidget
 from curses_ui.footer_widget import FooterWidget
 from curses_ui.current_widget import CurrentWidget
 from curses_ui.splash_widget import SplashWidget
+from constants import TOO_SMALL_BOUNDARY_X,active_variable_names
+from util import int_half, filter_future_only
 
 empty_hrdps_data = {
   'temperature': [],
@@ -48,8 +49,6 @@ class CursesApp():
     self.active_breakpoints = (Breakpoints.MEDIUM, Breakpoints.MEDIUM)
 
     (init_y, init_x) = self.screen.getmaxyx()
-    self.max_y = init_y
-    self.max_x = init_x
 
     self.refresh_data()
     self.footer = FooterWidget(self.screen, init_y-2, 0, 0, init_x)
@@ -66,8 +65,6 @@ class CursesApp():
   def render_loop(self):
     while 1:
       (max_y, max_x) = self.screen.getmaxyx()
-      self.max_y = max_y
-      self.max_x = max_x
 
       self.setBreakpoints(max_y, max_x)
 
