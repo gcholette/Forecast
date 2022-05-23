@@ -1,7 +1,6 @@
 version = "0.2.3"
 timezone = 'America/New_York'
-lat = 45.536325
-lon = -73.491374
+(lat, lon) = (45.54267095081205, -73.49954050635866)
 
 base_path = '/app/'
 data_path = f'{base_path}data/'

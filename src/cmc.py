@@ -11,13 +11,13 @@ from file_manager import FileManager
 from util import cprint
 
 class CMC:
-    def __init__(self, cmc_type, domain='east', resolution='ps2.5km', variables=[], run_hour = '00', range_top = 48):
+    def __init__(self, cmc_type, domain='east', resolution='ps2.5km', variables: list[str]=[], run_hour: str = '00', range_top: int = 48) -> None:
         self.type = cmc_type
         self.domain = domain
         self.resolution = resolution
         self.variables = variables
         self.run_hour = run_hour
-        self.range_top = range_top
+        self.range_top: int = range_top
 
     def fetch_files(self, urls, files):
         needToFetch = False
@@ -166,7 +166,7 @@ class CMC:
       elif self.type == 'hrdps':
         return casted_value * 1
     
-    def generate_url_list(self, variables=["TMP_TGL_2"]):
+    def generate_url_list(self):
         if (not isinstance(self.variables, list)):
           raise RuntimeError("Variables is not an array.")
         names = []
