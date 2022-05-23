@@ -7,7 +7,17 @@ data_path = f'{base_path}data/'
 hrdps_path = f'{data_path}cmc/hrdps/'
 geps_path = f'{data_path}cmc/geps/'
 
+hrdps_resolution_diff = 0.02
+geps_resolution_diff = 0.5
+
 active_variable_names = ['temperature', 'wind', 'humidity', 'precipitation']
+hrdps_matching_type_str = [ 
+  ('temperature', 'temperature'), 
+  ('wind', 'wind'), 
+  ('humidity', 'humidity'), 
+  ('precipitation', 'Cloud water')
+]
+
 spinner_frames_1 = ['_', '/','|', '\\']
 spinner_frames_2 = ['_', '_','_', '_', '-','-','-','-']
 

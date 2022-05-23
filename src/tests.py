@@ -2,6 +2,7 @@ import unittest
 import arrow
 
 from services.cmc import CMC
+from services.file_manager import FileManager
 from constants import geps_variables, rdps_variables
 
 class TestCMC(unittest.TestCase):
@@ -81,6 +82,9 @@ class TestCMC(unittest.TestCase):
         ]
         self.assertEqual.__self__.maxDiff = None
         self.assertEqual(filename, results, "Is correct value")
+
+    def test_get_timestamp_from_filename(self):
+      pass
 
 if __name__ == '__main__':
     unittest.main()

@@ -63,6 +63,7 @@ class CursesApp():
     self.render_loop()
 
   def render_loop(self):
+    # performance needs to be improved here
     while 1:
       (max_y, max_x) = self.screen.getmaxyx()
 

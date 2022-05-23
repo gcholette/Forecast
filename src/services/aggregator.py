@@ -14,7 +14,9 @@ class Aggregator:
     self.aggregated_data = {
       'current': {},
       'hourly': {},
-      'last_aggregation_time': ''
+      'last_aggregation_time': '',
+      'lat': 0,
+      'lon': 0
     }
 
   def select_filename(self, filename):
@@ -22,7 +24,6 @@ class Aggregator:
 
   def save(self):
     return FileManager.save_json(aggregator_type, self.select_filename, self.aggregated_data)
-      
 
   def load(self):
     if (FileManager.json_file_exists(aggregator_type, self.select_filename)):

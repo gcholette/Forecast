@@ -17,6 +17,13 @@ class GribAnalyst:
         for grb in self.grbs:
             lst.append(grb)
         return lst
+
+    def extract_data(self, lat, lon, diff):
+      inv1 = self.get_inventory()
+      inv = str(inv1[0])
+      if (len(inv) > 0):
+          attr = inv.split(':')[1]
+          return self.find_central_data(attr, lat-diff, lat+diff, lon-diff, lon+diff)
     
     # returnds central data within lat1, lat2 and len1, len2 boundaries
     def find_central_data(self, name, lat1, lat2, len1, len2):

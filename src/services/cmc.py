@@ -5,7 +5,8 @@ import pygrib
 
 from sty import fg
 from os.path import exists
-from constants import hrdps_path, geps_path
+from constants import hrdps_path, geps_path, hrdps_resolution_diff
+from models.hrdps_entry import HrdpsEntry
 from services.grib_analyst import GribAnalyst
 from services.file_manager import FileManager
 from util import cprint
@@ -61,56 +62,19 @@ class CMC:
               if (exists(file_path)): 
                   grbs = pygrib.open(hrdps_path + filename)
                   timestamp = FileManager.get_timestamp_from_filename(filename, 'hrdps')
+
                   grib_analyst = GribAnalyst(grbs)
-                  inv1 = grib_analyst.get_inventory()
-                  inv = str(inv1[0])
-                  if (len(inv) > 0):
-                      attr = inv.split(':')[1]
-                      local_data = grib_analyst.find_central_data(attr, lat-diff, lat+diff, lon-diff, lon+diff)
-                      local_data['time'] = timestamp
-                      local_data['time'] = arrow.get(local_data['time']).to('America/New_York').shift(hours=int(self.run_hour)).format()
-                      if ('temperature' in local_data['type']):
-                        local_data['value'] = round(local_data['value'] - 273.15, 2)
-                      if (local_data['type'] == '2 metre specific humidity'):
-                        local_data['value'] = round(local_data['value'] * 10000, 2)
-                      if (local_data['type'] == 'Cloud water'):
-                        local_data['value'] = round(local_data['value'], 2)
-                      if (local_data['type'] == '10 metre wind speed'):
-                        local_data['value'] = round(local_data['value'] * 3.6, 2)
-                      data.append(local_data)
+                  extracted_data = grib_analyst.extract_data(lat, lon, hrdps_resolution_diff)
+
+                  if extracted_data != None:
+                    extracted_data['time'] = timestamp
+                    parsed_data = HrdpsEntry.parse(extracted_data, self.run_hour)
+                    data.append(parsed_data)
               else:
                 cprint(fg.red, "No file to load.")
 
           return data
 
-        case 'geps':
-          diff = 0.5 
-          data = []
-          for filename in filePaths:
-              file_path = geps_path + filename
-              if (exists(file_path)): 
-                  grbs = pygrib.open(file_path)
-                  timestamp = FileManager.get_timestamp_from_filename(filename, 'geps')
-                  grib_analyst = GribAnalyst(grbs)
-                  inv1 = grib_analyst.get_inventory()
-                  cprint(fg.cyan, "GEPS Inventory: ")
-                  for i in inv1:
-                    cprint(fg.yellow, str(i))
-                  inv = str(inv1[0])
-                  grib_analyst.get_info()
-                  if (len(inv) > 0):
-                      attr = inv.split(':')[1]
-                      local_data = grib_analyst.find_central_data(attr, round(lat-diff, 1), round(lat+diff, 1), round(lon-diff+180, 1), round(lon+diff+180,1))
-                      local_data['time'] = timestamp
-                      local_data['time'] = arrow.get(local_data['time']).to('America/New_York').shift(hours=int(self.run_hour)).format()
-                      cprint(fg.yellow, str(local_data))
-                      #if (local_data['type'] == '2 metre temperature'):
-                      #  local_data['value'] = round(local_data['value'] - 273.15, 2)
-                      data.append(local_data)
-              else:
-                cprint(fg.red, "No file to load.")
-
-          return []
         case 'default':
           cprint(fg.red, 'Not implemented')
           return []
