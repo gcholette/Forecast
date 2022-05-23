@@ -1,11 +1,11 @@
-# Forecast :sun_behind_rain_cloud:
+<h1 align="center">Forecast :sun_behind_rain_cloud:</h1>
 
-Fetch and aggregate data from various meteorological sources to estimate an hourly forecast (Unfinished).
+<p align="center">Fetch and aggregate data from various meteorological sources to estimate an hourly forecast (Unfinished).</p>
 
-Only tested inside docker because of the hassle of installing pygrib.
+<p align="center">Currently working on support for GEPS and RDPS analysis (from <a href="https://weather.gc.ca/mainmenu/modelling_menu_e.html">CMC</a>).</p>
 
-Currently working on support for GEPS and RDPS analysis (from [CMC](https://weather.gc.ca/mainmenu/modelling_menu_e.html)).
-
-Working sources: CMC HRDPS
-
-![image](https://user-images.githubusercontent.com/8711020/167414170-b9167333-8590-471e-b2ae-fb8db61aa960.png)
+<p align="center">Working sources: CMC HRDPS</p>
+<br/>
+<p align="center">
+<img src="https://user-images.githubusercontent.com/8711020/168712202-c8a47c6f-cb09-41fb-a2a2-5a9350f39598.png"/>
+</p>
