@@ -6,42 +6,43 @@ from constants import geps_variables, rdps_variables
 
 class TestCMC(unittest.TestCase):
     def test_formatFileName_geps_1(self):
-        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='12', range_top='48')
+        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='12', range_top=48)
         filename = cmc.format_filename('20220101', '000', variable=geps_variables["temperature"][0])
         self.assertEqual(filename, 'CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_2022010112_P000_allmbrs.grib2', "Is correct value")
 
     def test_formatFileName_geps_2(self):
-        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='00', range_top='48')
+        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='00', range_top=48)
         filename = cmc.format_filename('20220102', '000', variable=geps_variables["temperature"][0])
         self.assertEqual(filename, 'CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_2022010200_P000_allmbrs.grib2', "Is correct value")
 
     def test_formatFileName_hrdps_1(self):
-        cmc = CMC('hrdps', resolution='ps2.5km', variables=rdps_variables["temperature"], run_hour='12', range_top='48', domain='west')
+        cmc = CMC('hrdps', resolution='ps2.5km', variables=rdps_variables["temperature"], run_hour='12', range_top=48, domain='west')
         filename = cmc.format_filename('20220101', '001', variable=rdps_variables["temperature"][0])
         self.assertEqual(filename, 'CMC_hrdps_west_TMP_TGL_2_ps2.5km_2022010112_P001-00.grib2', "Is correct value")
 
     def test_formatFileName_rdps_1(self):
-        cmc = CMC('rdps', resolution='ps10km', variables=rdps_variables["temperature"], run_hour='00', range_top='48')
+        cmc = CMC('rdps', resolution='ps10km', variables=rdps_variables["temperature"], run_hour='00', range_top=48)
         filename = cmc.format_filename('20220418', '000', variable=rdps_variables["temperature"][0])
         self.assertEqual(filename, 'CMC_reg_TMP_TGL_2_ps10km_2022041800_P000.grib2', "Is correct value")
 
     def test_formatUrl_geps_1(self):
-        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='12', range_top='48')
+        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='12', range_top=48)
         filename = cmc.format_url('20220101', '000', geps_variables["temperature"][0])
         self.assertEqual(filename, 'https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/000/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_2022010112_P000_allmbrs.grib2', "Is correct value")
 
     def test_formatUrl_rdps_1(self):
-        cmc = CMC('rdps', resolution='ps10km', variables=rdps_variables["temperature"], run_hour='12', range_top='48')
+        cmc = CMC('rdps', resolution='ps10km', variables=rdps_variables["temperature"], run_hour='12', range_top=48)
         filename = cmc.format_url('20220418', '000', rdps_variables["temperature"][0])
         self.assertEqual(filename, 'https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/000/CMC_reg_TMP_TGL_2_ps10km_2022041812_P000.grib2', "Is correct value")
 
     def test_formatUrl_hrdps_1(self):
-        cmc = CMC('hrdps', resolution='ps2.5km', variables=rdps_variables["temperature"], run_hour='12', range_top='48', domain="west")
+        cmc = CMC('hrdps', resolution='ps2.5km', variables=rdps_variables["temperature"], run_hour='12', range_top=48, domain="west")
         filename = cmc.format_url('20220418', '000', rdps_variables["temperature"][0])
         self.assertEqual(filename, 'https://dd.weather.gc.ca/model_hrdps/west/grib2/12/000/CMC_hrdps_west_TMP_TGL_2_ps2.5km_2022041812_P000-00.grib2', "Is correct value")
 
     def test_generate_url_list_geps(self):
-        filename = CMC.generate_url_list('geps', '12', 5, [geps_variables["temperature"][0]], 'latlon0p5x0p5')
+        cmc = CMC('geps', resolution='latlon0p5x0p5', variables=geps_variables["temperature"], run_hour='12', range_top=5)
+        filename = cmc.generate_url_list()
         currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/ensemble/geps/grib2/raw/12/000/CMC_geps-raw_TMP_TGL_2m_latlon0p5x0p5_%s12_P000_allmbrs.grib2' % (currentDate)),
@@ -54,7 +55,8 @@ class TestCMC(unittest.TestCase):
         self.assertEqual(filename, results, "Is correct value")
 
     def test_generate_url_list_rdps(self):
-        filename = CMC.generate_url_list('rdps', '12', 5, [rdps_variables["temperature"][0]], 'ps10km')
+        cmc = CMC('rdps', resolution='ps10km', variables=rdps_variables["temperature"], run_hour='12', range_top=5)
+        filename = cmc.generate_url_list()
         currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/model_gem_regional/10km/grib2/12/000/CMC_reg_TMP_TGL_2_ps10km_%s12_P000.grib2' % (currentDate)),
@@ -67,7 +69,8 @@ class TestCMC(unittest.TestCase):
         self.assertEqual(filename, results, "Is correct value")
 
     def test_generate_url_list_hrdps(self):
-        filename = CMC.generate_url_list('hrdps', '12', 5, [rdps_variables["temperature"][0]], 'ps2.5km')
+        cmc = CMC('hrdps', resolution='ps2.5km', variables=rdps_variables["temperature"], run_hour='12', range_top=5)
+        filename = cmc.generate_url_list()
         currentDate = arrow.utcnow().to('-04:00').format('YYYYMMDD')
         results = [
             ('https://dd.weather.gc.ca/model_hrdps/east/grib2/12/000/CMC_hrdps_east_TMP_TGL_2_ps2.5km_%s12_P000-00.grib2' % (currentDate)),
