@@ -1,7 +1,7 @@
 import copy
 import curses
 import time
-from constants import TOO_SMALL_BOUNDARY_X
+from constants import TOO_SMALL_BOUNDARY_X,active_variable_names
 from enum import Enum
 from content_manager import ContentManager
 from util import int_half, filter_future_only
@@ -53,7 +53,7 @@ class CursesApp():
 
     self.refresh_data()
     self.footer = FooterWidget(self.screen, init_y-2, 0, 0, init_x)
-    self.hourly_widget = HourlyWidget(self.screen, 13, 0, 4, init_x)
+    self.hourly_widget = HourlyWidget(self.screen, 10, 0, 7, init_x)
     self.current_widget = CurrentWidget(self.screen, 0, 0, 7, int_half(init_x))
     self.splash = SplashWidget(self.screen, 0, 0, init_y-4, init_x)
 
@@ -111,10 +111,11 @@ class CursesApp():
     global updated_data
 
     hourly_data_scrolled = {}
-    hourly_data_scrolled['temperature'] = []
-    for d, i in zip(hrdps_data['temperature'], list(range(0, len(hrdps_data['temperature'])))):
-      if i > self.hourly_data_scroll:
-        hourly_data_scrolled['temperature'].append(d)
+    for var_name in active_variable_names:
+      hourly_data_scrolled[var_name] = []
+      for d, i in zip(hrdps_data[var_name], list(range(0, len(hrdps_data[var_name])))):
+        if i > self.hourly_data_scroll:
+          hourly_data_scrolled[var_name].append(d)
 
     self.hourly_widget.set_data(hourly_data_scrolled)
     updated_data = False
@@ -126,9 +127,10 @@ class CursesApp():
 
   def boot_sequence(self):
     self.splash.draw()
-    self.footer.set_message('Starting up')
+    # add multiple random msgs
+    self.footer.set_message('Welcome back!')
     self.footer.draw()
-    for i in range(0, 20):
+    for _ in range(0, 20):
       time.sleep(0.1)
       self.footer.draw()
     self.splash.clear()
@@ -141,9 +143,9 @@ class CursesApp():
       self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.TOO_SMALL)
     if (max_x > TOO_SMALL_BOUNDARY_X):
       self.active_breakpoints = (self.active_breakpoints[0], Breakpoints.SMALL)
-    if (max_y <= 8):
+    if (max_y <= 13):
       self.active_breakpoints = (Breakpoints.TOO_SMALL, self.active_breakpoints[1])
-    if (max_y > 8):
+    if (max_y > 13):
       self.active_breakpoints = (Breakpoints.SMALL, self.active_breakpoints[1])
 
   def is_window_too_small(self):

@@ -59,7 +59,6 @@ class FileManager:
     @staticmethod
     def save_json(type, filename, content):
         path = data_path + 'json/' + type + '/' + filename
-
         if not os.path.exists(data_path + 'json/'):
             os.mkdir(data_path + 'json/')
         if not os.path.exists(data_path + 'json/' + type + '/'):
@@ -79,5 +78,3 @@ class FileManager:
     def json_file_exists(type, filename):
       path = data_path + 'json/' + type + '/' + filename
       return os.path.exists(path)
-
-

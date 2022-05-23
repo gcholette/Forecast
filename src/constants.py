@@ -8,11 +8,11 @@ data_path = f'{base_path}data/'
 hrdps_path = f'{data_path}cmc/hrdps/'
 geps_path = f'{data_path}cmc/geps/'
 
-active_variable_names = ['temperature', 'humidity', 'wind', 'precipitation']
+active_variable_names = ['temperature', 'wind', 'humidity', 'precipitation']
 spinner_frames_1 = ['_', '/','|', '\\']
 spinner_frames_2 = ['_', '_','_', '_', '-','-','-','-']
 
-TOO_SMALL_BOUNDARY_X = 67
+TOO_SMALL_BOUNDARY_X = 68
 SMALL_BOUNDARY_X = 75 
 MEDIUM_BOUNDARY_X = 100 
 LARGE_BOUNDARY_X = 150 

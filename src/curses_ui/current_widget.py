@@ -12,16 +12,16 @@ class CurrentWidget(Widget):
   def draw(self):
     (max_y, max_x) = self.screen.getmaxyx()
     self.instance.mvwin(0, 0)
-    self.instance.resize(7, int_half(max_x))
+    self.instance.resize(7, 28)
 
     self.instance.attron(curses.color_pair(3))
     self.instance.border()
     self.instance.attroff(curses.color_pair(3))
 
-    self.instance.addstr(1, 2, f'Current   {arrow.utcnow().to(timezone).format("YYYY-MM-DD HH:mm:ss")}')
+    self.instance.addstr(1, 2, f'Current   {arrow.utcnow().to(timezone).format("MM-DD HH:mm:ss")}')
     self.instance.addstr(2, 2, 'T °C')
-    self.instance.addstr(3, 2, 'H g/kg')
-    self.instance.addstr(4, 2, 'W km/h')
+    self.instance.addstr(3, 2, 'W km/h')
+    self.instance.addstr(4, 2, 'H g/kg')
     self.instance.addstr(5, 2, 'P kg/kg')
 
     def draw_value(var_name, y, x, color_code_fn = None):
@@ -39,8 +39,8 @@ class CurrentWidget(Widget):
 
     value_x = 12
     draw_value('temperature', 2, value_x, temperature_color_code)
-    draw_value('humidity', 3, value_x, None)
-    draw_value('wind', 4, value_x, None)
+    draw_value('humidity', 4, value_x, None)
+    draw_value('wind', 3, value_x, None)
     draw_value('precipitation', 5, value_x, None)
 
     self.instance.refresh()
