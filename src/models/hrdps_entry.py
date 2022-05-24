@@ -4,16 +4,16 @@ from constants import hrdps_matching_type_str
 
 class HrdpsEntry:
   @staticmethod
-  def parse(entry: dict, run_hour: str) -> dict:
+  def parse(entry: dict) -> dict:
     return {
-     'time': HrdpsEntry.parse_hrdps_time(entry, run_hour),
+     'time': HrdpsEntry.parse_hrdps_time(entry),
      'value': HrdpsEntry.parse_hrdps_value(entry),
      'type': HrdpsEntry.parse_hrdps_type(entry)
     }
 
   @staticmethod
-  def parse_hrdps_time(entry: dict, run_hour: str) -> str:
-    return arrow.get(entry['time']).to('America/New_York').shift(hours=int(run_hour)).format()
+  def parse_hrdps_time(entry: dict) -> str:
+    return arrow.get(entry['time']).to('America/New_York').format()
 
   @staticmethod
   def parse_hrdps_type(entry: dict) -> str:

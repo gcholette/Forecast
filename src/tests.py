@@ -84,7 +84,15 @@ class TestCMC(unittest.TestCase):
         self.assertEqual(filename, results, "Is correct value")
 
     def test_get_timestamp_from_filename(self):
-      pass
+      ts = FileManager.get_timestamp_from_filename('hrdps', 'CMC_hrdps_east_DEPR_ISBL_0175_ps2.5km_2011092412_P003-00.grib2')
+      ## run_hour = 12
+      ## P003 -> 12 + 03 = 15
+      self.assertEqual("2011-09-24 15:00:00+00:00", ts, "Is correct value")
+
+    def test_get_timestamp_from_filename_2(self):
+      ts = FileManager.get_timestamp_from_filename('hrdps', 'CMC_hrdps_east_TMP_ISBL_0175_ps2.5km_2011092406_P021-00.grib2')
+      self.assertEqual("2011-09-25 03:00:00+00:00", ts, "Is correct value")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -19,7 +19,7 @@ class FooterWidget(Widget):
     self.instance.attroff(curses.color_pair(3))
 
     self.instance.addstr(1, 2, ' ', curses.color_pair(2))
-    self.instance.addstr(1, 4, f'Forecasts v{version}')
+    self.instance.addstr(1, 4, f'Forecast v{version}')
 
     self.instance.addstr(1, max_x-3, self.spinner.render())
 

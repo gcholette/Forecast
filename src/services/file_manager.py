@@ -39,13 +39,13 @@ class FileManager:
             f.write(content)
 
     @staticmethod
-    def get_timestamp_from_filename(filename, cmc_type): 
+    def get_timestamp_from_filename(cmc_type, filename): 
         if cmc_type == 'hrdps':
           a = filename.split('_')
           date = a[len(a)-2]
           hour = a[len(a)-1][2:4]
           run_hour = date[8:10]
-          time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=int(hour)).format()
+          time = arrow.get(date, 'YYYYMMDD' + run_hour).shift(hours=(int(hour) + int(run_hour))).format()
           return time
         if cmc_type == 'geps':
           a = filename.split('_')

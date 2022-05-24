@@ -55,13 +55,12 @@ class CMC:
     def load_grib_from_files(self, lat, lon, filePaths = []):
       match self.type:
         case 'hrdps':
-          diff = 0.02
           data = []
           for filename in filePaths:
               file_path = hrdps_path + filename
               if (exists(file_path)): 
                   grbs = pygrib.open(hrdps_path + filename)
-                  timestamp = FileManager.get_timestamp_from_filename(filename, 'hrdps')
+                  timestamp = FileManager.get_timestamp_from_filename('hrdps', filename)
 
                   grib_analyst = GribAnalyst(grbs)
                   extracted_data = grib_analyst.extract_data(lat, lon, hrdps_resolution_diff)
