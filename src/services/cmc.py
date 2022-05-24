@@ -66,8 +66,7 @@ class CMC:
                   extracted_data = grib_analyst.extract_data(lat, lon, hrdps_resolution_diff)
 
                   if extracted_data != None:
-                    extracted_data['time'] = timestamp
-                    parsed_data = HrdpsEntry.parse(extracted_data, self.run_hour)
+                    parsed_data = HrdpsEntry.parse(extracted_data, timestamp)
                     data.append(parsed_data)
               else:
                 cprint(fg.red, "No file to load.")

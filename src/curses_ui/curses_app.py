@@ -34,7 +34,8 @@ class Breakpoints(Enum):
 
 
 class CursesApp():
-  def __init__(self):
+  def __init__(self, aggregator):
+    aggregator.subscribe(self)
     self.counter: int = 0
     self.content_manager = ContentManager()
     self.hourly_data_scrolled = copy.deepcopy(empty_hrdps_data)
@@ -172,8 +173,15 @@ class CursesApp():
     self.hourly_widget.refresh()
     self.current_widget.refresh()
 
+  # Aggregator notify
+  def notify(self, *args):
+    pass
+    #self.screen.addstr(9, 6, f'received: {args[0]}')
+    #self.screen.refresh()
+    #time.sleep(1)
+
   def refresh_data(self):
-    t = Thread(target=self.use_content_manager)
+    t = Thread(target=self.use_content_manager, daemon=True)
     t.start()
 
   # Threaded fn

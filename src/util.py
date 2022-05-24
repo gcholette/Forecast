@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 import arrow
 from sty import fg, bg
 

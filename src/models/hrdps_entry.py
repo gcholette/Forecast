@@ -1,19 +1,14 @@
-
 import arrow
-from constants import hrdps_matching_type_str
+from constants import hrdps_matching_type_str, timezone
 
 class HrdpsEntry:
   @staticmethod
-  def parse(entry: dict) -> dict:
+  def parse(entry: dict, timestamp: str) -> dict:
     return {
-     'time': HrdpsEntry.parse_hrdps_time(entry),
+     'time': arrow.get(timestamp).to(timezone).format(),
      'value': HrdpsEntry.parse_hrdps_value(entry),
      'type': HrdpsEntry.parse_hrdps_type(entry)
     }
-
-  @staticmethod
-  def parse_hrdps_time(entry: dict) -> str:
-    return arrow.get(entry['time']).to('America/New_York').format()
 
   @staticmethod
   def parse_hrdps_type(entry: dict) -> str:

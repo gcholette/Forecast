@@ -3,6 +3,7 @@ import arrow
 
 from services.cmc import CMC
 from services.file_manager import FileManager
+from models.hrdps_entry import HrdpsEntry
 from constants import geps_variables, rdps_variables
 
 class TestCMC(unittest.TestCase):
@@ -92,6 +93,15 @@ class TestCMC(unittest.TestCase):
     def test_get_timestamp_from_filename_2(self):
       ts = FileManager.get_timestamp_from_filename('hrdps', 'CMC_hrdps_east_TMP_ISBL_0175_ps2.5km_2011092406_P021-00.grib2')
       self.assertEqual("2011-09-25 03:00:00+00:00", ts, "Is correct value")
+
+    def test_hrdps_entry_1(self):
+      entry = HrdpsEntry.parse({
+        'value': 280,
+        'type': '2 metre temperature'
+      }, '2011-09-25 05:00:00+00:00')
+      self.assertEqual(entry['time'], '2011-09-25 01:00:00-04:00')
+      self.assertEqual(entry['value'], 6.85)
+      self.assertEqual(entry['type'], 'temperature')
 
 
 if __name__ == '__main__':
