@@ -1,14 +1,14 @@
 
 class Subscribable:
   def __init__(self):
-    self.subsribers = []
+    self.subscribers = []
 
   def subscribe(self, sub):
-      self.subsribers.append(sub)
+      self.subscribers.append(sub)
 
   def notify_subs(self, *args):
-      for sub in self.subsribers:
+      for sub in self.subscribers:
           sub.notify(*args)
 
   def unsubscribe(self, sub):
-      self.subsribers.remove(sub)
+      self.subscribers.remove(sub)
