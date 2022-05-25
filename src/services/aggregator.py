@@ -3,15 +3,16 @@ import time
 import arrow
 from services.file_manager import FileManager
 from constants import timezone
+from misc.subscribable import Subscribable
 
 ## store dates as utc
 ## don't keep history
 ## use one file as db for now
 aggregator_type = 'aggregated'
 
-class Aggregator:
+class Aggregator(Subscribable):
   def __init__(self, latitude, longitude):
-    self.subsribers = []
+    super().__init__()
     self.selected_filename = f'{aggregator_type}_{latitude}_{longitude}.json'
     self.in_data = { 'hrdps': {} }
     self.aggregated_data = {
@@ -39,14 +40,3 @@ class Aggregator:
       aggregator_file_contents = FileManager.open_json_file(aggregator_type)
       if (aggregator_file_contents['last_aggregation_time'] != ''):
         self.aggregated_data = aggregator_file_contents
-
-  def subscribe(self, sub):
-      self.subsribers.append(sub)
-
-  def notify_subs(self, *args):
-      for sub in self.subsribers:
-          sub.notify(*args)
-
-  def unsubscribe(self, sub):
-      self.subsribers.remove(sub)
-
